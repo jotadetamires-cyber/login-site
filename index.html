@@ -1,136 +1,137 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Gabinete do Administrador</title>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(to bottom right, #5a87c5, #7fb3e7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Gabinete do Administrador</title>
+  <style>
+    :root{
+      --primary:#2c3e50;
+      --accent:#376aa0;
+      --bg1:#5a87c5; /* fundo no estilo da imagem */
+      --bg2:#7fb3e7;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; height:100vh; display:flex; justify-content:center; align-items:center;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom right, var(--bg1), var(--bg2));
+    }
+    .login-wrap{ width:100%; max-width:520px; padding:20px; }
+    .panel{
+      background: rgba(255,255,255,.15);
+      border-radius: 10px; padding: 36px 32px; text-align:center;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+    }
+    .title{ color:#fff; font-weight:700; letter-spacing:.5px; margin:4px 0 22px; font-size:22px; }
 
-        .login-container {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 400px;
-        }
+    /* ícone grande superior */
+    .hero-icon{ width:64px; height:64px; border:2px solid #fff; border-radius:12px; margin:0 auto 18px; display:grid; place-items:center; color:#fff; font-size:28px; }
 
-        .login-container h2 {
-            margin-bottom: 20px;
-            font-size: 20px;
-            color: #fff;
-        }
+    .group{ position:relative; margin-bottom:16px; display:flex; align-items:center; }
+    .group .left-icon{
+      width:46px; height:46px; background: var(--accent); color:#fff; display:grid; place-items:center;
+      border-radius:6px 0 0 6px; font-size:18px; flex:0 0 46px;
+    }
+    .group input{
+      border: none; height:46px; padding:0 12px; font-size:15px; width:100%;
+      border-radius: 0 6px 6px 0;
+    }
+    .group input:focus{ outline: 2px solid rgba(255,255,255,.6) }
 
-        .icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #2c3e50;
-            font-size: 16px;
-        }
+    .options{ display:flex; align-items:center; gap:10px; color:#fff; font-size:14px; margin:6px 0 18px; }
+    .options a{ color:#fff; opacity:.9; text-decoration:underline; }
 
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
+    .btn{ width:100%; height:48px; border:none; border-radius:6px; background: var(--primary); color:#fff; font-weight:700; font-size:16px; cursor:pointer; }
+    .btn:disabled{ opacity:.6; cursor:wait }
 
-        .input-group input {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
+    .error{ color:#ffd2d2; background:#5b1111; border:1px solid #ffb1b1; padding:10px 12px; border-radius:6px; display:none; margin-top:12px; font-size:14px; }
 
-        .checkbox-group {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .checkbox-group input {
-            margin-right: 6px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            background-color: #2c3e50;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background-color: #1a252f;
-        }
-
-        .error-message {
-            color: #ff6b6b;
-            margin-top: 15px;
-            display: none;
-            font-size: 14px;
-        }
-    </style>
+    /* (opcional) reduz tentar "ver código" via clique direito/atalhos – apenas estética, não é segurança real */
+    .no-select{ user-select:none }
+  </style>
 </head>
-<body>
-
-    <div class="login-container">
-        <h2>BEM VINDO AO GABINETE DO ADMINISTRADOR</h2>
-        <form id="loginForm">
-            <div class="input-group">
-                <span class="icon">👤</span>
-                <input type="text" id="username" name="username" placeholder="Usuário" required>
-            </div>
-            <div class="input-group">
-                <span class="icon">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Senha" required>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="rememberMe">
-                <label for="rememberMe">Lembrar-me</label>
-            </div>
-            <button type="submit" class="btn">LOGIN</button>
-            <p id="errorMessage" class="error-message">Usuário ou senha inválidos.</p>
-        </form>
+<body class="no-select">
+  <div class="login-wrap">
+    <div class="panel">
+      <div class="hero-icon">👥</div>
+      <h2 class="title">BEM VINDO AO GABINETE DO ADMINISTRADOR</h2>
+      <form id="loginForm" autocomplete="off" novalidate>
+        <div class="group">
+          <div class="left-icon">👤</div>
+          <input id="username" name="username" type="text" placeholder="Usuário" required />
+        </div>
+        <div class="group">
+          <div class="left-icon">🔒</div>
+          <input id="password" name="password" type="password" placeholder="Senha" required />
+        </div>
+        <div class="options">
+          <label><input type="checkbox" id="rememberMe" /> Lembrar-me</label>
+          <span style="margin-left:auto"></span>
+          <a href="#" onclick="alert('Contacte o administrador do sistema.');return false;">Esqueci a senha</a>
+        </div>
+        <button id="loginBtn" type="submit" class="btn">LOGIN</button>
+        <div id="error" class="error">Usuário ou senha inválidos.</div>
+      </form>
     </div>
+  </div>
 
-    <script>
-        const loginForm = document.getElementById('loginForm');
-        const errorMessage = document.getElementById('errorMessage');
+  <script>
+    // ======== CONFIGURAÇÃO ========
+    // Troque pela rota do seu servidor (PHP/Node/Apps Script). Ex.: '/login.php' ou URL do Web App
+    const LOGIN_ENDPOINT = '/login.php';
 
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
+    // ======== LEMBRAR-ME (só armazena o nome de usuário, NUNCA a senha) ========
+    const remember = document.getElementById('rememberMe');
+    const userInput = document.getElementById('username');
+    const passInput = document.getElementById('password');
+    const errorBox = document.getElementById('error');
+    const btn = document.getElementById('loginBtn');
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const targetUrl = "https://sites.google.com/d/17FiNovlYfLAIb-YASC7v8EN4qo0JpyCm/p/1LArKtaODGk6fLarakFG6CHA07bY1n2Dn/edit";
+    // Preenche usuário salvo
+    const savedUser = localStorage.getItem('rememberUsername');
+    if (savedUser) { userInput.value = savedUser; remember.checked = true; }
 
-            if (username === "jafane" && password === "feliz1234") {
-                window.location.href = targetUrl;
-            } else {
-                errorMessage.style.display = "block";
-            }
+    remember.addEventListener('change', ()=>{
+      if(!remember.checked){ localStorage.removeItem('rememberUsername'); }
+    });
+
+    // ======== SUBMISSÃO SEGURA (sem credenciais no front-end) ========
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault(); errorBox.style.display='none'; btn.disabled = true;
+      try{
+        if(remember.checked){ localStorage.setItem('rememberUsername', userInput.value.trim()); }
+        const payload = { username: userInput.value.trim(), password: passInput.value };
+
+        const res = await fetch(LOGIN_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include'
         });
-    </script>
 
+        if(!res.ok){ throw new Error('Falha de autenticação'); }
+        const data = await res.json();
+        if(data && data.ok && data.redirect){
+          window.location.href = data.redirect;
+        } else {
+          throw new Error('Credenciais inválidas');
+        }
+      }catch(err){
+        errorBox.textContent = 'Usuário ou senha inválidos.';
+        errorBox.style.display='block';
+      }finally{
+        btn.disabled = false;
+      }
+    });
+
+    // ======== (opcional) reduzir inspeção casual – NÃO É SEGURANÇA REAL ========
+    document.addEventListener('contextmenu', (e)=> e.preventDefault()); // bloqueia clique direito superficial
+    document.addEventListener('keydown', (e)=>{
+      const k = e.key.toLowerCase();
+      if (e.ctrlKey && (k==='u' || k==='s' || k==='p')) e.preventDefault(); // Ctrl+U, Ctrl+S, Ctrl+P
+      if (e.key==='F12' || (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k))) e.preventDefault(); // DevTools
+    });
+  </script>
 </body>
 </html>
