@@ -1,59 +1,150 @@
-<label for="produto">Produto:</label>
-<input id="produto" type="text" name="produto" list="lista-produtos" required autocomplete="off">
-<datalist id="lista-produtos"></datalist>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro de Serviços</title>
+<style>
+    body {
+        font-family: Arial; margin: 20px;
+        background-color: #f4f4f4; display: flex; justify-content: center;
+    }
+    .container {
+        background-color: #fff; padding: 20px; border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 750px;
+    }
+    h1, h2 { text-align: center; color: #333; }
+    form {
+        margin-bottom: 20px; display: grid;
+        grid-template-columns: 1fr 1fr; gap: 10px 15px;
+    }
+    form div { display: flex; flex-direction: column; }
+    label { margin-bottom: 3px; font-weight: bold; font-size: 14px; }
+    input, select {
+        width: 100%; padding: 5px; border: 1px solid #ccc;
+        border-radius: 4px; text-align: center; font-size: 14px;
+    }
+    .full-width { grid-column: 1 / 3; }
+    button {
+        background-color: #28a745; color: white; padding: 6px 10px;
+        border: none; border-radius: 4px; cursor: pointer;
+        font-size: 14px; grid-column: 1 / 3; justify-self: center;
+    }
+    button:hover { background-color: #218838; }
+    table {
+        width: 100%; border-collapse: collapse;
+        margin-top: 15px; text-align: left; font-size: 14px;
+    }
+    th, td { border: 1px solid #ddd; padding: 6px; }
+    th { background-color: #f2f2f2; }
+    tbody tr:nth-child(odd) { background-color: #f9f9f9; }
+    select.statusSelect {
+        width: 100%; border: none; background-color: transparent;
+        text-align: center; font-weight: bold;
+    }
+    button.deleteBtn {
+        background-color: #dc3545; color: white; padding: 4px 8px;
+        border-radius: 4px; border: none; cursor: pointer; font-size: 13px;
+    }
+    button.deleteBtn:hover { background-color: #c82333; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cadastro de Serviços</h1>
+    <form id="cadastroForm">
+        <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
+        <div><label>Fornecedor:</label><input type="text" id="fornecedor" required></div>
+        <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
+        <div><label>Preço (R$):</label><input type="number" id="preco" step="0.01" required></div>
+        <div><label>Status:</label>
+            <select id="status" required>
+                <option value="">Selecione</option>
+                <option value="Pago">Pago</option>
+                <option value="Não Pago">Não Pago</option>
+            </select>
+        </div>
+        <button type="submit" class="full-width">Cadastrar</button>
+    </form>
+
+    <h2>Registros Cadastrados</h2>
+    <table id="tabelaServicos">
+        <thead>
+            <tr>
+                <th>Serviço</th><th>Fornecedor</th><th>Assinatura</th>
+                <th>Preço</th><th>Data</th><th>Status</th><th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycby3RPB8EPhHMjuaanVowNmtHoft4ekrtENPnZmvAB7D00LqVsOf3z75C7eB8ApiVYC7/exec";
-const form = document.getElementById('form');
-const msg = document.getElementById('msg');
-const btn = form.querySelector('button');
-const lista = document.getElementById('lista-produtos');
+function atualizarCorStatus(select){
+    if(select.value === "Pago"){ select.style.color = "green"; }
+    else if(select.value === "Não Pago"){ select.style.color = "red"; }
+    else { select.style.color = "black"; }
+}
 
-// Buscar lista de produtos existentes ao carregar
-window.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const res = await fetch(scriptURL); // GET
-    const dados = await res.json();
-    lista.innerHTML = dados.produtos.map(p => `<option value="${p}">`).join('');
-  } catch (err) {
-    console.error('Erro ao carregar produtos existentes', err);
-  }
-});
+function criarCelulaEditavel(text, tipo="text"){
+    const input = document.createElement("input");
+    input.value = text; input.type = tipo;
+    input.style.textAlign = "center"; input.style.width = "95%";
+    return input;
+}
 
-form.addEventListener('submit', async e => {
-  e.preventDefault();
+document.getElementById('cadastroForm').addEventListener('submit', function(event){
+    event.preventDefault();
 
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData);
+    const servico = document.getElementById('servico').value;
+    const fornecedor = document.getElementById('fornecedor').value;
+    const assinatura = document.getElementById('assinatura').value;
+    const preco = parseFloat(document.getElementById('preco').value).toFixed(2);
+    const status = document.getElementById('status').value;
+    const data = new Date().toLocaleDateString('pt-BR');
 
-  if (data.quantidade <= 0 || data.pcompra <= 0 || data.pvenda <= 0) {
-    msg.innerText = "❌ Valores inválidos!";
-    msg.style.color = "red";
-    setTimeout(() => msg.innerText = '', 3000);
-    return;
-  }
+    const tabela = document.getElementById('tabelaServicos').querySelector('tbody');
+    const novaLinha = tabela.insertRow();
 
-  btn.disabled = true;
+    // Celulas editáveis
+    novaLinha.insertCell(0).appendChild(criarCelulaEditavel(servico));
+    novaLinha.insertCell(1).appendChild(criarCelulaEditavel(fornecedor));
+    novaLinha.insertCell(2).appendChild(criarCelulaEditavel(assinatura));
+    novaLinha.insertCell(3).appendChild(criarCelulaEditavel(preco, "number"));
+    novaLinha.insertCell(4).innerText = data;
 
-  try {
-    const res = await fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify(data)
+    // Status
+    const statusCell = novaLinha.insertCell(5);
+    const selectStatus = document.createElement('select');
+    selectStatus.className = 'statusSelect';
+    ['Pago','Não Pago'].forEach(op=>{
+        const option = document.createElement('option');
+        option.value = op; option.text = op;
+        if(op===status) option.selected = true;
+        selectStatus.appendChild(option);
     });
+    atualizarCorStatus(selectStatus);
+    statusCell.appendChild(selectStatus);
 
-    await res.json();
+    // Botão excluir
+    const acaoCell = novaLinha.insertCell(6);
+    const botaoExcluir = document.createElement('button');
+    botaoExcluir.innerText = "Eliminar"; botaoExcluir.className = "deleteBtn";
+    botaoExcluir.disabled = selectStatus.value !== "Pago";
+    botaoExcluir.addEventListener('click', ()=> novaLinha.remove());
+    acaoCell.appendChild(botaoExcluir);
 
-    msg.innerText = "✅ Produto cadastrado com sucesso!";
-    msg.style.color = "green";
-    form.reset();
+    // Atualizações
+    function atualizarTudo(){
+        atualizarCorStatus(selectStatus);
+        botaoExcluir.disabled = selectStatus.value !== "Pago";
+    }
+    selectStatus.addEventListener('change', atualizarTudo);
 
-  } catch(err) {
-    msg.innerText = "❌ Erro ao salvar!";
-    msg.style.color = "red";
-    console.error(err);
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => msg.innerText = '', 3000);
-  }
+    document.getElementById('cadastroForm').reset();
 });
 </script>
+
+</body>
+</html>
