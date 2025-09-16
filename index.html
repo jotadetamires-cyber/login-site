@@ -11,7 +11,7 @@
     }
     .container {
         background-color: #fff; padding: 20px; border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 700px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 900px;
     }
     h1, h2 { text-align: center; color: #333; }
     form {
@@ -47,17 +47,62 @@
         border-radius: 4px; border: none; cursor: pointer; font-size: 13px;
     }
     button.deleteBtn:hover { background-color: #c82333; }
-    .relatorio {
-        margin-top: 20px; background: #f2f2f2;
-        padding: 10px; border-radius: 6px; font-size: 15px;
+
+    /* Relatório estilizado */
+    #relatorioContainer {
+        margin-top: 20px;
+        background: #ffffff;
+        padding: 18px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
     }
-    #btnPdf {
-        background-color: #007bff; margin-top: 10px;
+    .relatorio-header {
+        text-align: center;
+        margin-bottom: 12px;
     }
-    #btnPdf:hover { background-color: #0056b3; }
+    .relatorio-header img {
+        width: 80px;
+        height: auto;
+        display: block;
+        margin: 0 auto 8px auto;
+    }
+    .relatorio-body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #000;
+        text-align: justify;
+        margin-top: 8px;
+    }
+    .relatorio-center {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 14px;
+        line-height: 1.5;
+        text-align: center;
+    }
+    .report-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    .btn-secondary {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-secondary:hover { background-color: #0069d9; }
+
+    /* print styles */
+    @media print {
+        body * { visibility: hidden; }
+        #printArea, #printArea * { visibility: visible; }
+        #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+    }
 </style>
-<!-- jsPDF para gerar PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -66,7 +111,7 @@
     <form id="cadastroForm">
         <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
         <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
-        <div><label>Preço (R$):</label><input type="number" id="preco" step="0.01" required></div>
+        <div><label>Preço (MZN):</label><input type="number" id="preco" step="0.01" required></div>
         <div><label>Status:</label>
             <select id="status" required>
                 <option value="">Selecione</option>
@@ -82,14 +127,22 @@
         <thead>
             <tr>
                 <th>Serviço</th><th>Assinatura</th>
-                <th>Preço</th><th>Data</th><th>Status</th><th>Ações</th>
+                <th>Preço (MZN)</th><th>Data</th><th>Status</th><th>Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <div id="relatorioDiario" class="relatorio"></div>
-    <button id="btnPdf" class="full-width">Baixar Relatório em PDF</button>
+    <!-- Área do relatório -->
+    <div id="relatorioContainer">
+        <div class="report-actions">
+            <button id="gerarRelatorio" class="btn-secondary">Visualizar Relatório Formatado</button>
+            <button id="baixarPDF" class="btn-secondary">Baixar PDF</button>
+        </div>
+
+        <!-- área onde o relatório será renderizado -->
+        <div id="relatorioFormatado" style="margin-top:12px;"></div>
+    </div>
 </div>
 
 <script>
@@ -106,42 +159,156 @@ function criarCelulaEditavel(text, tipo="text"){
     return input;
 }
 
-function atualizarRelatorio(){
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    const linhas = document.querySelectorAll("#tabelaServicos tbody tr");
-    let totalRegistros = 0, totalPago = 0, totalNaoPago = 0;
-    let somaValores = 0, somaPago = 0, somaNaoPago = 0;
+function formatCurrencyMZN(value){
+    // formata com duas casas e separador de decimal coma
+    return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MZN';
+}
 
+function coletarDadosTabela(){
+    const linhas = document.querySelectorAll("#tabelaServicos tbody tr");
+    const dados = [];
     linhas.forEach(linha=>{
+        const servico = linha.cells[0].querySelector('input') ? linha.cells[0].querySelector('input').value : linha.cells[0].innerText;
+        const assinatura = linha.cells[1].querySelector('input') ? linha.cells[1].querySelector('input').value : linha.cells[1].innerText;
+        const preco = linha.cells[2].querySelector('input') ? parseFloat(linha.cells[2].querySelector('input').value) : parseFloat(linha.cells[2].innerText) || 0;
         const data = linha.cells[3].innerText;
-        if(data === hoje){
-            totalRegistros++;
-            const preco = parseFloat(linha.cells[2].querySelector('input').value) || 0;
-            somaValores += preco;
-            const status = linha.cells[4].querySelector('select').value;
-            if(status==="Pago"){ totalPago++; somaPago += preco; }
-            else if(status==="Não Pago"){ totalNaoPago++; somaNaoPago += preco; }
-        }
+        const status = linha.cells[4].querySelector('select') ? linha.cells[4].querySelector('select').value : linha.cells[4].innerText;
+        dados.push({servico, assinatura, preco, data, status});
+    });
+    return dados;
+}
+
+/**
+ * Gera o relatório formatado (HTML string).
+ * Regras pedidos pelo utilizador:
+ * - Cabeçalho com emblema + textos centralizados
+ * - Começa com a data
+ * - Texto em Times New Roman 14px, line-height 1.5
+ * - Agrupar por tipo de serviço, para cada tipo gerar parágrafo corrido com 3 linhas (separadas por <br>)
+ * - Cada parágrafo descreve valor pago e valor não pago; valores em MZN
+ * - Sem juízos de valor
+ */
+function montarRelatorioHTML(){
+    const dados = coletarDadosTabela();
+    const hojeData = new Date().toLocaleDateString('pt-BR');
+
+    // Agrupar por tipo de serviço
+    const grupo = {};
+    dados.forEach(item=>{
+        // considera todos os registos (para o mês também poderia filtrar por mês; aqui uso todos)
+        const key = item.servico || "Serviço não especificado";
+        if(!grupo[key]) grupo[key] = [];
+        grupo[key].push(item);
     });
 
-    document.getElementById("relatorioDiario").innerHTML =
-        `<b>Relatório de ${hoje}</b><br>
-         ➤ Total de Registros: ${totalRegistros}<br>
-         ➤ Pagos: ${totalPago} (Valor: R$ ${somaPago.toFixed(2)})<br>
-         ➤ Não Pagos: ${totalNaoPago} (Valor: R$ ${somaNaoPago.toFixed(2)})<br>
-         ➤ Valor Total do Dia: R$ ${somaValores.toFixed(2)}`;
+    // Cabeçalho do relatório (com espaço para imagem do emblema)
+    // Substitua o src abaixo pelo URL do emblema oficial, se desejar.
+    const header = `
+        <div id="printArea">
+            <div class="relatorio-header">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Coat_of_arms_of_Mozambique.svg" alt="Emblema da República de Moçambique" onerror="this.style.display='none'">
+                <div class="relatorio-center" style="font-weight:bold; font-size:16px;">
+                    REPÚBLICA DE MOÇAMBIQUE<br>
+                    PAPELARIA MUIPELIUA<br>
+                    RELATÓRIO MENSAL
+                </div>
+            </div>
+
+            <div class="relatorio-body" style="margin-top:10px;">
+                <div style="text-align:left; margin-bottom:10px;">
+                    <strong>Data do Relatório:</strong> ${hojeData}
+                </div>
+    `;
+
+    // Corpo detalhado: para cada tipo de serviço criar parágrafo corrido com 3 linhas
+    let corpo = '';
+    Object.keys(grupo).forEach(serv => {
+        const itens = grupo[serv];
+        // calcular total pago e não pago para esse serviço
+        let totalPago = 0, totalNaoPago = 0, count = 0, somaGeral = 0;
+        itens.forEach(it => {
+            count++;
+            const p = Number(it.preco || 0);
+            somaGeral += p;
+            if(it.status === "Pago") totalPago += p;
+            else totalNaoPago += p;
+        });
+
+        // criar parágrafo com 3 linhas (frases curtas), sem juízos
+        // 1ª linha: descrição do tipo de serviço e resumo do valor pago
+        // 2ª linha: descrição do valor não pago
+        // 3ª linha: número de registos e valor total do serviço
+        const linha1 = `Tipo de Serviço: ${serv}. Valor total pago para este tipo: ${formatCurrencyMZN(totalPago)}.`;
+        const linha2 = `Valor total não pago para este tipo: ${formatCurrencyMZN(totalNaoPago)}.`;
+        const linha3 = `Número de registos: ${count}. Valor agregado (todos os registos deste tipo): ${formatCurrencyMZN(somaGeral)}.`;
+
+        // concatenar como parágrafo corrido (cada parágrafo terá 3 "linhas" separadas por <br>)
+        corpo += `<p style="margin-bottom:12px; margin-top:8px;">${linha1}<br>${linha2}<br>${linha3}</p>`;
+    });
+
+    // Caso não existam registos
+    if(Object.keys(grupo).length === 0){
+        corpo += `<p>Nenhum registo encontrado para exibir no relatório.</p>`;
+    }
+
+    // Fechar relatório
+    const footer = `
+            </div>
+        </div>
+    `;
+
+    return header + corpo + footer;
 }
 
-function gerarPDF(){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const texto = document.getElementById("relatorioDiario").innerText;
-    doc.text(texto, 10, 20);
-    doc.save("Relatorio_Diario.pdf");
-}
+// Renderiza relatório no espaço #relatorioFormatado
+document.getElementById('gerarRelatorio').addEventListener('click', ()=>{
+    const html = montarRelatorioHTML();
+    const container = document.getElementById('relatorioFormatado');
+    container.innerHTML = html;
+    // aplica estilos de Times New Roman (garantidos pelo HTML montado)
+});
 
-document.getElementById('btnPdf').addEventListener('click', gerarPDF);
+// Baixar PDF (abre nova janela com relatório e chama print)
+document.getElementById('baixarPDF').addEventListener('click', ()=>{
+    const html = montarRelatorioHTML();
+    const w = window.open('', '_blank', 'width=900,height=800');
+    if(!w){
+        alert('Permita pop-ups para este site para poder gerar o PDF.');
+        return;
+    }
+    // construir um documento HTML completo para impressão
+    w.document.write(`
+        <html>
+        <head>
+            <title>Relatório - Papelaria Muipeliua</title>
+            <style>
+                body { font-family: "Times New Roman", Times, serif; font-size:14px; line-height:1.5; margin: 20px; color:#000; }
+                .relatorio-header { text-align:center; margin-bottom:12px; }
+                .relatorio-header img { width:80px; height:auto; display:block; margin:0 auto 8px auto; }
+                .relatorio-center { text-align:center; font-weight:bold; font-size:16px; }
+                p { text-align:justify; margin:0 0 12px 0; }
+            </style>
+        </head>
+        <body>
+            ${html}
+            <script>
+                // aguarda o carregamento da imagem antes de imprimir
+                function tryPrint(){
+                    setTimeout(function(){
+                        window.print();
+                    }, 300);
+                }
+                tryPrint();
+            </script>
+        </body>
+        </html>
+    `);
+    w.document.close();
+});
 
+// ----------------------------------
+// Código de inserção e tabela (mantive comportamento anterior)
+// ----------------------------------
 document.getElementById('cadastroForm').addEventListener('submit', function(event){
     event.preventDefault();
 
@@ -179,15 +346,13 @@ document.getElementById('cadastroForm').addEventListener('submit', function(even
     botaoExcluir.disabled = selectStatus.value !== "Pago";
     botaoExcluir.addEventListener('click', ()=>{
         novaLinha.remove();
-        atualizarRelatorio();
     });
     acaoCell.appendChild(botaoExcluir);
 
-    // Atualizações dinâmicas
+    // Atualizações
     function atualizarTudo(){
         atualizarCorStatus(selectStatus);
         botaoExcluir.disabled = selectStatus.value !== "Pago";
-        atualizarRelatorio();
     }
     [selectStatus,
      novaLinha.cells[2].querySelector('input'),
@@ -197,7 +362,6 @@ document.getElementById('cadastroForm').addEventListener('submit', function(even
     selectStatus.addEventListener('change', atualizarTudo);
 
     document.getElementById('cadastroForm').reset();
-    atualizarRelatorio();
 });
 </script>
 
