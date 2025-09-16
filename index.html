@@ -1,49 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Serviços - Relatório Detalhado</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cadastro de Serviços — Relatório Descritivo</title>
 <style>
-    /* Layout da aplicação */
     body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
+        font-family: Arial; margin: 20px;
+        background-color: #f4f4f4; display: flex; justify-content: center;
     }
     .container {
-        background-color: #fff;
-        padding: 18px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        width: 780px;
+        background-color: #fff; padding: 20px; border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 900px;
     }
-    h1, h2 { text-align: center; color: #333; margin: 6px 0; }
+    h1, h2 { text-align: center; color: #333; }
     form {
-        margin-bottom: 14px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
+        margin-bottom: 20px; display: grid;
+        grid-template-columns: 1fr 1fr 1fr; gap: 10px 15px;
     }
     form div { display: flex; flex-direction: column; }
-    label { margin-bottom: 3px; font-weight: bold; font-size: 13px; }
+    label { margin-bottom: 3px; font-weight: bold; font-size: 14px; text-align: center; }
     input, select {
         width: 100%; padding: 6px; border: 1px solid #ccc;
         border-radius: 4px; text-align: center; font-size: 14px;
     }
-    .full-width { grid-column: 1 / 3; }
+    .full-width { grid-column: 1 / 4; }
     button {
         background-color: #28a745; color: white; padding: 8px 12px;
         border: none; border-radius: 4px; cursor: pointer;
-        font-size: 14px; grid-column: 1 / 3; justify-self: center;
+        font-size: 14px; grid-column: 1 / 4; justify-self: center;
     }
     button:hover { background-color: #218838; }
-
     table {
         width: 100%; border-collapse: collapse;
-        margin-top: 10px; text-align: left; font-size: 13px;
+        margin-top: 15px; text-align: left; font-size: 14px;
     }
     th, td { border: 1px solid #ddd; padding: 6px; }
     th { background-color: #f2f2f2; }
@@ -57,43 +47,33 @@
         border-radius: 4px; border: none; cursor: pointer; font-size: 13px;
     }
     button.deleteBtn:hover { background-color: #c82333; }
-
-    /* Relatório - estilo institucional (Times New Roman) */
-    .relatorioBox { margin-top: 18px; padding: 10px; }
-    .relatorioConteudo {
+    .relatorio {
+        margin-top: 20px; background: #fff; padding: 12px; border-radius: 6px;
+        font-size: 14px;
+    }
+    .relatorioActions { margin-top: 8px; display:flex; gap:10px; justify-content:flex-end; }
+    /* estilo do relatório gerado (para nova janela) */
+    .report-print {
         font-family: "Times New Roman", Times, serif;
         font-size: 14px;
         line-height: 1.5;
         color: #000;
-        background: #fff;
-        padding: 18px;
-        border-radius: 6px;
     }
-    .relatorioCabecalho { text-align: center; margin-bottom: 12px; }
-    .emblema {
-        width: 90px; height: 90px; display: block; margin: 0 auto 6px;
-    }
-    .tituloCabecalho { font-weight: bold; margin: 2px 0; }
-    .acoesRelatorio { display:flex; gap:10px; justify-content:center; margin-top:10px; }
-
-    /* Estilos de impressão (vai garantir Times New Roman e layout adequado) */
-    @media print {
-        body { background: #fff; }
-        .container { box-shadow: none; width: auto; margin: 0; padding: 0; }
-        .no-print { display: none !important; }
-        .relatorioConteudo { box-shadow: none; }
-    }
+    .report-header { text-align: center; margin-bottom: 12px; }
+    .report-header img { width: 90px; height: auto; display:block; margin: 0 auto 6px; }
+    .report-title { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+    .report-body { text-align: justify; white-space: pre-wrap; }
+    .report-section { margin-top: 10px; }
 </style>
 </head>
 <body>
-
 <div class="container">
     <h1>Cadastro de Serviços</h1>
 
-    <form id="cadastroForm" class="no-print">
+    <form id="cadastroForm">
         <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
         <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
-        <div><label>Preço (MZN):</label><input type="number" id="preco" step="0.01" required></div>
+        <div><label>Preço (MT):</label><input type="number" id="preco" step="0.01" required></div>
         <div><label>Status:</label>
             <select id="status" required>
                 <option value="">Selecione</option>
@@ -101,247 +81,320 @@
                 <option value="Não Pago">Não Pago</option>
             </select>
         </div>
-        <button type="submit">Cadastrar</button>
+        <div style="grid-column:1/4; display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+            <button id="btnCadastrar" type="submit">Cadastrar</button>
+        </div>
     </form>
 
-    <h2 class="no-print">Registros Cadastrados</h2>
-    <table id="tabelaServicos" class="no-print">
+    <h2>Registros Cadastrados</h2>
+    <table id="tabelaServicos">
         <thead>
             <tr>
                 <th>Serviço</th><th>Assinatura</th>
-                <th>Preço (MZN)</th><th>Data</th><th>Status</th><th>Ações</th>
+                <th>Preço (MT)</th><th>Data</th><th>Status</th><th>Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <div class="relatorioBox">
-        <div id="relatorioDiario" class="relatorioConteudo" aria-live="polite">
-            <!-- Relatório detalhado institucional será gerado aqui automaticamente -->
+    <div class="relatorio">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong id="resumoCurto">Relatório resumo</strong>
+            <div>
+                <label for="periodo">Período:</label>
+                <select id="periodo">
+                    <option value="diario">Diário (hoje)</option>
+                    <option value="mensal">Mensal (mês atual)</option>
+                </select>
+                <button id="visualizarRelatorio" style="margin-left:8px;">Visualizar Relatório</button>
+                <button id="gerarPDF" style="margin-left:8px;">Gerar PDF</button>
+            </div>
         </div>
-
-        <div class="acoesRelatorio no-print">
-            <button id="baixarPdfBtn">Baixar/Imprimir Relatório (PDF)</button>
-        </div>
+        <div id="relatorioResumoDetalhado" style="margin-top:12px;"></div>
     </div>
 </div>
 
 <script>
-/* ---------------- utilidades ---------------- */
-function formatarMZN(valor){
-    // Formata em Metical (MZN) com separador pt-BR. Fallback simples se Intl não suportar MZN.
-    try{
-        return new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(valor);
-    }catch(e){
-        return 'MT ' + Number(valor).toFixed(2).replace('.', ',');
-    }
-}
-
-function criarInputEditavel(valor, tipo="text"){
-    const input = document.createElement('input');
-    input.value = valor;
-    input.type = tipo;
-    input.style.textAlign = "center";
-    input.style.width = "95%";
-    return input;
-}
-
+/* Funções utilitárias */
 function atualizarCorStatus(select){
     if(select.value === "Pago"){ select.style.color = "green"; }
     else if(select.value === "Não Pago"){ select.style.color = "red"; }
     else { select.style.color = "black"; }
 }
+function criarCelulaEditavel(text, tipo="text"){
+    const input = document.createElement("input");
+    input.value = text; input.type = tipo;
+    input.style.textAlign = "center"; input.style.width = "95%";
+    return input;
+}
+function formatMT(value){
+    // Formata em Metical; se Intl não suportar MZN no navegador, usa fallback
+    try {
+        return new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(value);
+    } catch(e){
+        return 'MT ' + Number(value).toFixed(2);
+    }
+}
 
-/* ---------------- lógica de cadastro ---------------- */
-document.getElementById('cadastroForm').addEventListener('submit', function(e){
-    e.preventDefault();
+/* Atualiza resumo curto (no painel) */
+function atualizarResumoPainel(){
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const linhas = document.querySelectorAll("#tabelaServicos tbody tr");
+    let totalRegistros = 0, somaValores = 0;
+    linhas.forEach(linha=>{
+        const data = linha.cells[3].innerText;
+        if(data === hoje){
+            totalRegistros++;
+            const preco = parseFloat(linha.cells[2].querySelector('input').value) || 0;
+            somaValores += preco;
+        }
+    });
+    document.getElementById('resumoCurto').innerText = `Registros de ${hoje}: ${totalRegistros} — Valor total (hoje): ${formatMT(somaValores)}`;
+}
+
+/* Gera o texto corrido descritivo do relatório (diário ou mensal) */
+function gerarTextoRelatorio(periodo = 'diario'){
+    const hoje = new Date();
+    const hojeStr = hoje.toLocaleDateString('pt-BR');
+    const month = hoje.getMonth();
+    const year = hoje.getFullYear();
+
+    // recolher linhas
+    const linhas = Array.from(document.querySelectorAll("#tabelaServicos tbody tr"));
+    let selecionadas = [];
+    linhas.forEach(linha=>{
+        const dataText = linha.cells[3].innerText; // dd/mm/yyyy
+        if(!dataText) return;
+        const parts = dataText.split('/');
+        const d = parseInt(parts[0],10), m = parseInt(parts[1],10)-1, y = parseInt(parts[2],10);
+        if(periodo === 'diario'){
+            const hojeDate = new Date();
+            if(d === hojeDate.getDate() && m === hojeDate.getMonth() && y === hojeDate.getFullYear()){
+                selecionadas.push(linha);
+            }
+        } else { // mensal
+            if(m === month && y === year){
+                selecionadas.push(linha);
+            }
+        }
+    });
+
+    // cálculos
+    let totalRegistros = selecionadas.length;
+    let totalPago = 0, totalNaoPago = 0;
+    let somaPago = 0, somaNaoPago = 0;
+    const relPaid = [], relUnpaid = [];
+
+    selecionadas.forEach(linha=>{
+        const serv = linha.cells[0].querySelector('input').value || linha.cells[0].innerText;
+        const assin = linha.cells[1].querySelector('input').value || linha.cells[1].innerText;
+        const preco = parseFloat(linha.cells[2].querySelector('input').value) || 0;
+        const dataReg = linha.cells[3].innerText;
+        const status = linha.cells[4].querySelector('select').value;
+
+        if(status === 'Pago'){
+            totalPago++;
+            somaPago += preco;
+            relPaid.push({serv, assin, preco, dataReg});
+        } else {
+            totalNaoPago++;
+            somaNaoPago += preco;
+            relUnpaid.push({serv, assin, preco, dataReg});
+        }
+    });
+
+    // Montar texto corrido e detalhado
+    const periodoTitulo = periodo === 'diario' ? `Relatório do dia ${hojeStr}` : `Relatório do mês ${hoje.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}`;
+    let texto = `${periodoTitulo}\n\n`;
+    texto += `Instituição: República de Moçambique\nUnidade: Papelaria Muipeliua\nTipo de Relatório: ${periodo === 'diario' ? 'Diário' : 'Mensal'}\n\n`;
+    texto += `No período em referência houve um total de ${totalRegistros} registo(s) de serviços.\n\n`;
+    texto += `Do total, ${totalPago} foram registados com o status "Pago", perfazendo o montante de ${formatMT(somaPago)}.\n`;
+    texto += `Por outro lado, ${totalNaoPago} registo(s) encontram-se com status "Não Pago", perfazendo o montante de ${formatMT(somaNaoPago)}.\n\n`;
+
+    // detalhar serviços pagos
+    if(relPaid.length){
+        texto += `Serviços com pagamento confirmado:\n`;
+        relPaid.forEach(item=>{
+            texto += `- Serviço: ${item.serv}; Assinatura: ${item.assin}; Valor pago: ${formatMT(item.preco)}; Data do registo: ${item.dataReg}.\n`;
+        });
+        texto += `\n`;
+    } else {
+        texto += `Não foram encontrados registos marcados como "Pago" no período.\n\n`;
+    }
+
+    // detalhar serviços não pagos
+    if(relUnpaid.length){
+        texto += `Serviços pendentes (Não Pago):\n`;
+        relUnpaid.forEach(item=>{
+            texto += `- Serviço: ${item.serv}; Assinatura: ${item.assin}; Valor pendente: ${formatMT(item.preco)}; Data do registo: ${item.dataReg}.\n`;
+        });
+        texto += `\n`;
+    } else {
+        texto += `Não existem registos pendentes no período.\n\n`;
+    }
+
+    texto += `Observações: Este relatório descreve o estado dos serviços registados na base de dados do sistema. Os valores estão expressos em Meticais (MT). Para confirmação documental consultar recibos e a contabilidade local.\n\n`;
+    texto += `Emitido em: ${hojeStr}.\n\n`;
+    texto += `Assinatura:\nPapelaria Muipeliua\n`;
+
+    return {titulo: periodoTitulo, texto, somaPago, somaNaoPago, totalRegistros};
+}
+
+/* Função que cria a janela de relatório e aciona impressão (ou permite salvar em PDF) */
+function abrirRelatorioEmNovaJanela(periodo){
+    const {titulo, texto, somaPago, somaNaoPago, totalRegistros} = gerarTextoRelatorio(periodo);
+    // HTML do relatório
+    const html = `
+    <html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>${titulo}</title>
+        <style>
+            @page { margin: 20mm; }
+            body { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.5; margin: 20px; color:#000; }
+            .report-header { text-align:center; margin-bottom:10px; }
+            .report-header img { width:90px; height:auto; display:block; margin:0 auto 6px; }
+            .report-title { font-weight:bold; font-size:16px; }
+            .report-body { text-align:justify; white-space:pre-wrap; margin-top:12px; }
+            .report-footer { margin-top:20px; text-align:left; }
+            .center { text-align:center; }
+        </style>
+    </head>
+    <body>
+        <div class="report-print">
+            <div class="report-header">
+                <!-- substitua 'emblema.png' pela imagem real do emblema -->
+                <img src="emblema.png" onerror="this.style.display='none'"/>
+                <div class="report-title">
+                    REPÚBLICA DE MOÇAMBIQUE<br>
+                    PAPELARIA MUIPELIUA<br>
+                    RELATÓRIO INSTITUCIONAL
+                </div>
+            </div>
+            <div class="report-body">
+${texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+            </div>
+            <div class="report-footer">
+                <div>Resumo financeiro do período: Total pago: ${formatMT(somaPago)} — Total não pago: ${formatMT(somaNaoPago)}</div>
+                <div style="margin-top:18px;">Assinatura responsável: _________________________</div>
+            </div>
+        </div>
+        <script>
+            // acionar print automaticamente
+            window.onload = function(){
+                setTimeout(function(){
+                    window.print();
+                }, 300);
+            };
+        </script>
+    </body>
+    </html>
+    `;
+    const w = window.open('', '_blank', 'noopener,width=900,height=700');
+    if(!w){
+        alert('Impossível abrir nova janela. Permita pop-ups para este site ou use o botão Gerar PDF novamente.');
+        return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+}
+
+/* Função que atualiza o bloco de resumo detalhado (no painel) */
+function atualizarResumoDetalhado(periodo){
+    const {titulo, texto, somaPago, somaNaoPago, totalRegistros} = gerarTextoRelatorio(periodo);
+    const container = document.getElementById('relatorioResumoDetalhado');
+    // Apresentação corrido, com cabeçalho centralizado (em HTML)
+    container.innerHTML = `
+        <div style="font-family:'Times New Roman', Times, serif; font-size:14px; line-height:1.5;">
+            <div style="text-align:center;">
+                <img src="emblema.png" onerror="this.style.display='none'" style="width:70px;display:block;margin:0 auto 6px;">
+                <div style="font-weight:bold;">REPÚBLICA DE MOÇAMBIQUE</div>
+                <div style="font-weight:bold;">PAPELARIA MUIPELIUA</div>
+                <div style="font-weight:bold; margin-bottom:10px;">${periodo === 'diario' ? 'RELATÓRIO DIÁRIO' : 'RELATÓRIO MENSAL'}</div>
+            </div>
+            <div style="text-align:justify; white-space:pre-wrap; margin-top:8px;">
+                ${texto.replace(/\n/g,'<br>')}
+            </div>
+            <div style="margin-top:10px;">
+                <strong>Resumo financeiro:</strong> Total pago: ${formatMT(somaPago)} — Total não pago: ${formatMT(somaNaoPago)}.
+            </div>
+        </div>
+    `;
+}
+
+/* Eventos e manipulação da tabela */
+document.getElementById('cadastroForm').addEventListener('submit', function(event){
+    event.preventDefault();
 
     const servico = document.getElementById('servico').value.trim();
     const assinatura = document.getElementById('assinatura').value.trim();
-    const precoRaw = parseFloat(document.getElementById('preco').value);
-    const preco = Number.isNaN(precoRaw) ? 0 : precoRaw;
+    const preco = parseFloat(document.getElementById('preco').value) || 0;
     const status = document.getElementById('status').value;
     const data = new Date().toLocaleDateString('pt-BR');
 
-    const tbody = document.querySelector('#tabelaServicos tbody');
-    const tr = tbody.insertRow();
+    const tabela = document.getElementById('tabelaServicos').querySelector('tbody');
+    const novaLinha = tabela.insertRow();
 
-    tr.insertCell(0).appendChild(criarInputEditavel(servico, "text"));
-    tr.insertCell(1).appendChild(criarInputEditavel(assinatura, "text"));
-    tr.insertCell(2).appendChild(criarInputEditavel(preco.toFixed(2), "number"));
-    tr.insertCell(3).innerText = data;
+    novaLinha.insertCell(0).appendChild(criarCelulaEditavel(servico));
+    novaLinha.insertCell(1).appendChild(criarCelulaEditavel(assinatura));
+    novaLinha.insertCell(2).appendChild(criarCelulaEditavel(preco.toFixed(2), "number"));
+    novaLinha.insertCell(3).innerText = data;
 
     // Status
-    const statusCell = tr.insertCell(4);
-    const select = document.createElement('select');
-    select.className = 'statusSelect';
+    const statusCell = novaLinha.insertCell(4);
+    const selectStatus = document.createElement('select');
+    selectStatus.className = 'statusSelect';
     ['Pago','Não Pago'].forEach(op=>{
-        const opt = document.createElement('option');
-        opt.value = op; opt.text = op;
-        if(op === status) opt.selected = true;
-        select.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = op; option.text = op;
+        if(op===status) option.selected = true;
+        selectStatus.appendChild(option);
     });
-    atualizarCorStatus(select);
-    statusCell.appendChild(select);
+    atualizarCorStatus(selectStatus);
+    statusCell.appendChild(selectStatus);
 
-    // Ações
-    const acaoCell = tr.insertCell(5);
-    const btnExcluir = document.createElement('button');
-    btnExcluir.className = 'deleteBtn';
-    btnExcluir.innerText = 'Eliminar';
-    btnExcluir.disabled = select.value !== 'Pago';
-    btnExcluir.addEventListener('click', ()=> { tr.remove(); gerarRelatorio(); });
-    acaoCell.appendChild(btnExcluir);
+    // Botão excluir
+    const acaoCell = novaLinha.insertCell(5);
+    const botaoExcluir = document.createElement('button');
+    botaoExcluir.innerText = "Eliminar"; botaoExcluir.className = "deleteBtn";
+    botaoExcluir.disabled = selectStatus.value !== "Pago";
+    botaoExcluir.addEventListener('click', (e)=>{
+        e.preventDefault();
+        novaLinha.remove();
+        atualizarResumoPainel();
+    });
+    acaoCell.appendChild(botaoExcluir);
 
-    // Atualizações quando editar
+    // Eventos de atualização: cor e resumo
     function atualizarTudo(){
-        atualizarCorStatus(select);
-        btnExcluir.disabled = select.value !== 'Pago';
-        gerarRelatorio();
+        atualizarCorStatus(selectStatus);
+        botaoExcluir.disabled = selectStatus.value !== "Pago";
+        atualizarResumoPainel();
     }
-    [tr.cells[0].querySelector('input'), tr.cells[1].querySelector('input'), tr.cells[2].querySelector('input'), select].forEach(el=>{
+    [selectStatus, novaLinha.cells[2].querySelector('input'), novaLinha.cells[1].querySelector('input'), novaLinha.cells[0].querySelector('input')].forEach(el=>{
         el.addEventListener('input', atualizarTudo);
         el.addEventListener('change', atualizarTudo);
     });
+    selectStatus.addEventListener('change', atualizarTudo);
 
-    // limpar form e atualizar relatório
+    // limpar form e atualizar resumo
     document.getElementById('cadastroForm').reset();
-    gerarRelatorio();
+    atualizarResumoPainel();
 });
 
-/* ---------------- construção do relatório institucional detalhado ---------------- */
-function gerarRelatorio(){
-    const hoje = new Date();
-    const dataHojeStr = hoje.toLocaleDateString('pt-BR');
-
-    // coletar linhas do dia
-    const linhas = Array.from(document.querySelectorAll('#tabelaServicos tbody tr'));
-    const registrosDoDia = linhas.filter(l => l.cells[3].innerText === dataHojeStr);
-
-    // agrupar por tipo de serviço
-    const agrupado = {}; // { servico: { pagos: [...], naoPagos: [...] } }
-    registrosDoDia.forEach(l => {
-        const servico = l.cells[0].querySelector('input').value.trim() || "(Sem descrição)";
-        const assinatura = l.cells[1].querySelector('input').value.trim();
-        const preco = parseFloat(l.cells[2].querySelector('input').value) || 0;
-        const status = l.cells[4].querySelector('select').value;
-
-        if(!agrupado[servico]) agrupado[servico] = { pagos: [], naoPagos: [] };
-        const registro = { assinatura, preco, status };
-        if(status === 'Pago') agrupado[servico].pagos.push(registro);
-        else agrupado[servico].naoPagos.push(registro);
-    });
-
-    // totais do dia
-    let totalRegistros = 0, totalPagoCount = 0, totalNaoPagoCount = 0;
-    let totalPagoValor = 0, totalNaoPagoValor = 0;
-    for(const serv in agrupado){
-        const g = agrupado[serv];
-        totalPagoCount += g.pagos.length;
-        totalNaoPagoCount += g.naoPagos.length;
-        g.pagos.forEach(r => totalPagoValor += r.preco);
-        g.naoPagos.forEach(r => totalNaoPagoValor += r.preco);
-        totalRegistros += g.pagos.length + g.naoPagos.length;
-    }
-
-    // montar HTML do relatório institucional (corrida, descritiva)
-    let html = '';
-
-    // Cabeçalho institucional (emblema inline SVG — substitua se quiser por <img src="seu-emblema.png">)
-    html += `<div class="relatorioCabecalho">`;
-    html += `<svg class="emblema" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect width="100" height="100" rx="12" ry="12" fill="#e6e6e6"></rect>
-                <text x="50" y="55" font-size="12" text-anchor="middle" fill="#333" font-family="Times New Roman">EMBLEMA</text>
-             </svg>`;
-    html += `<div class="tituloCabecalho">REPÚBLICA DE MOÇAMBIQUE</div>`;
-    html += `<div class="tituloCabecalho">PAPELARIA MUIPELIUA</div>`;
-    html += `<div class="tituloCabecalho">RELATÓRIO DIÁRIO - ${dataHojeStr}</div>`;
-    html += `</div>`;
-
-    // Introdução do relatório (parágrafo corrido)
-    html += `<div>`;
-    html += `<p>Em atendimento às actividades administrativas e de abastecimento realizadas no dia <strong>${dataHojeStr}</strong>, este relatório descreve de forma detalhada os serviços registrados, discriminando os que se encontram com o estado "Pago" e os que ainda se encontram "Não Pago". A informação abaixo apresenta, por tipo de serviço, a descrição das assinaturas relacionadas e os valores respectivos, seguidos das somas totais do dia.</p>`;
-
-    if(totalRegistros === 0){
-        html += `<p>Não foram registados serviços na data mencionada.</p>`;
-    } else {
-        // Para cada tipo de serviço, parágrafos separados
-        for(const serv in agrupado){
-            const g = agrupado[serv];
-            html += `<h3 style="text-align:left; margin-top:10px;">Serviço: ${serv}</h3>`;
-
-            // pagos
-            if(g.pagos.length){
-                html += `<p><strong>Serviços PAGOS (detalhes):</strong></p>`;
-                g.pagos.forEach((r, i) => {
-                    html += `<p>• Assinatura: ${r.assinatura || '-'} — Valor pago: ${formatarMZN(r.preco)}</p>`;
-                });
-                const somaPagos = g.pagos.reduce((s, it) => s + it.preco, 0);
-                html += `<p>Total recebido para este serviço: <strong>${formatarMZN(somaPagos)}</strong></p>`;
-            } else {
-                html += `<p><strong>Serviços PAGOS (detalhes):</strong> Nenhum registro pago para este serviço.</p>`;
-            }
-
-            // não pagos
-            if(g.naoPagos.length){
-                html += `<p><strong>Serviços NÃO PAGOS (detalhes):</strong></p>`;
-                g.naoPagos.forEach((r, i) => {
-                    html += `<p>• Assinatura: ${r.assinatura || '-'} — Valor em dívida: ${formatarMZN(r.preco)}</p>`;
-                });
-                const somaNaoPagos = g.naoPagos.reduce((s, it) => s + it.preco, 0);
-                html += `<p>Valor total em dívida para este serviço: <strong>${formatarMZN(somaNaoPagos)}</strong></p>`;
-            } else {
-                html += `<p><strong>Serviços NÃO PAGOS (detalhes):</strong> Nenhum registro pendente para este serviço.</p>`;
-            }
-        }
-
-        // resumo final do dia
-        html += `<hr>`;
-        html += `<p><strong>Resumo do dia (${dataHojeStr}):</strong></p>`;
-        html += `<p>Total de registos: ${totalRegistros}</p>`;
-        html += `<p>Total de serviços pagos: ${totalPagoCount} — Valor total recebido: <strong>${formatarMZN(totalPagoValor)}</strong></p>`;
-        html += `<p>Total de serviços não pagos: ${totalNaoPagoCount} — Valor total em dívida: <strong>${formatarMZN(totalNaoPagoValor)}</strong></p>`;
-        html += `<p><strong>Total geral (recebido + em dívida): ${formatarMZN(totalPagoValor + totalNaoPagoValor)}</strong></p>`;
-    }
-
-    // assinatura / rodapé
-    html += `<div style="margin-top:18px;">`;
-    html += `<p>Elaborado por: <em>Papelaria Muipeliua</em><br>Data de emissão: ${dataHojeStr}</p>`;
-    html += `</div>`;
-
-    html += `</div>`; // fecha container de texto
-
-    document.getElementById('relatorioDiario').innerHTML = html;
-}
-
-/* gerar relatório ao carregar a página (caso existam entradas com data de hoje) */
-gerarRelatorio();
-
-/* botão para baixar/imprimir relatório em PDF via janela de impressão */
-document.getElementById('baixarPdfBtn').addEventListener('click', function(){
-    // abrir nova janela com conteúdo do relatório (estilos minimalistas) e chamar print
-    const conteudo = document.getElementById('relatorioDiario').innerHTML;
-    const win = window.open('', '_blank', 'width=900,height=800');
-    const estilos = `
-        <style>
-        body{font-family:"Times New Roman", Times, serif; font-size:14px; line-height:1.5; margin:20px; color:#000}
-        .relatorioCabecalho{text-align:center}
-        .emblema{display:block;margin:0 auto 6px;width:90px;height:90px}
-        h3{margin-top:14px}
-        </style>
-    `;
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Relatório Diário</title>${estilos}</head><body>${conteudo}</body></html>`);
-    win.document.close();
-    // garantir que a janela carregue antes de chamar print
-    win.focus();
-    setTimeout(()=>{ win.print(); /* o usuário poderá escolher "Salvar como PDF" */ }, 300);
+/* Botões do relatório */
+document.getElementById('visualizarRelatorio').addEventListener('click', function(){
+    const periodo = document.getElementById('periodo').value;
+    atualizarResumoDetalhado(periodo);
+});
+document.getElementById('gerarPDF').addEventListener('click', function(){
+    const periodo = document.getElementById('periodo').value;
+    abrirRelatorioEmNovaJanela(periodo);
 });
 
-/* atualizar relatório sempre que tabela for alterada (delegation) */
-const observerTarget = document.querySelector('#tabelaServicos tbody');
-const mo = new MutationObserver(gerarRelatorio);
-mo.observe(observerTarget, { childList: true, subtree: true, attributes: true, characterData: true });
-
+/* Inicial */
+atualizarResumoPainel();
 </script>
 </body>
 </html>
