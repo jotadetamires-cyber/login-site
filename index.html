@@ -3,69 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Serviços</title>
+<title>Cadastro de Fornecimentos</title>
 <style>
-    body {
-        font-family: Arial; margin: 20px;
-        background-color: #f4f4f4; display: flex; justify-content: center;
-    }
-    .container {
-        background-color: #fff; padding: 20px; border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 750px;
-    }
+    body { font-family: Arial; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; }
+    .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 950px; }
     h1, h2 { text-align: center; color: #333; }
-    form {
-        margin-bottom: 20px; display: grid;
-        grid-template-columns: 1fr 1fr; gap: 10px 15px;
-    }
+    form { margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
     form div { display: flex; flex-direction: column; }
     label { margin-bottom: 3px; font-weight: bold; font-size: 14px; }
-    input, select {
-        width: 100%; padding: 5px; border: 1px solid #ccc;
-        border-radius: 4px; text-align: center; font-size: 14px;
-    }
+    input, select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
     .full-width { grid-column: 1 / 3; }
-    button {
-        background-color: #28a745; color: white; padding: 6px 10px;
-        border: none; border-radius: 4px; cursor: pointer;
-        font-size: 14px; justify-self: center;
-    }
+    button { background-color: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; grid-column: 1 / 3; justify-self: center; }
     button:hover { background-color: #218838; }
-    table {
-        width: 100%; border-collapse: collapse;
-        margin-top: 15px; text-align: left; font-size: 14px;
-    }
-    th, td { border: 1px solid #ddd; padding: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
     th { background-color: #f2f2f2; }
     tbody tr:nth-child(odd) { background-color: #f9f9f9; }
-    select.statusSelect {
-        width: 100%; border: none; background-color: transparent;
-        text-align: center; font-weight: bold;
-    }
-    button.deleteBtn {
-        background-color: #dc3545; color: white; padding: 4px 8px;
-        border-radius: 4px; border: none; cursor: pointer; font-size: 13px;
-    }
+    select.statusSelect { width: 100%; border: none; background-color: transparent; text-align: center; font-weight: bold; }
+    button.deleteBtn { background-color: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; }
     button.deleteBtn:hover { background-color: #c82333; }
-    .relatorio {
-        margin-top: 20px; background: #f2f2f2;
-        padding: 10px; border-radius: 6px; font-size: 15px;
-    }
-    .pdf-btn {
-        background-color: #007bff; margin-top: 15px;
-    }
-    .pdf-btn:hover { background-color: #0069d9; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
 <div class="container">
-    <h1>Cadastro de Serviços</h1>
+    <h1>Fornecimentos Muipeliua</h1>
     <form id="cadastroForm">
-        <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
-        <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
-        <div><label>Preço (MT):</label><input type="number" id="preco" step="0.01" required></div>
+        <div><label>Nome da Empresa:</label><input type="text" id="empresa" required></div>
+        <div><label>Fornecedor:</label><input type="text" id="fornecedor" required></div>
+        <div><label>Material Fornecido:</label><input type="text" id="material" required></div>
+        <div><label>Quantidade:</label><input type="number" id="quantidade" required></div>
+        <div><label>Preço Unitário (R$):</label><input type="number" id="preco" step="0.01" required></div>
         <div><label>Status:</label>
             <select id="status" required>
                 <option value="">Selecione</option>
@@ -76,158 +44,134 @@
         <button type="submit" class="full-width">Cadastrar</button>
     </form>
 
-    <h2>Registros Cadastrados</h2>
-    <table id="tabelaServicos">
+    <h2>Fornecimentos Cadastrados</h2>
+    <table id="tabelaFornecimentos">
         <thead>
             <tr>
-                <th>Serviço</th><th>Assinatura</th>
-                <th>Preço (MT)</th><th>Data</th><th>Status</th><th>Ações</th>
+                <th>Empresa</th><th>Fornecedor</th><th>Material</th><th>Quantidade</th>
+                <th>Preço Unitário</th><th>Preço Total</th><th>Data</th><th>Status</th><th>Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
-
-    <div id="relatorioDiario" class="relatorio"></div>
-
-    <button id="btnPDFdiario" class="pdf-btn full-width">Baixar Relatório Diário (PDF)</button>
-    <button id="btnPDFmensal" class="pdf-btn full-width">Baixar Relatório Mensal (PDF)</button>
 </div>
 
 <script>
+// ---------- FUNÇÕES BÁSICAS ----------
 function atualizarCorStatus(select){
-    select.style.color = (select.value === "Pago") ? "green" :
-                         (select.value === "Não Pago") ? "red" : "black";
+    if(select.value === "Pago"){
+        select.style.color = "green";
+    } else if(select.value === "Não Pago"){
+        select.style.color = "red";
+    } else {
+        select.style.color = "black";
+    }
 }
 
 function criarCelulaEditavel(text, tipo="text"){
     const input = document.createElement("input");
-    input.value = text; input.type = tipo;
-    input.style.textAlign = "center"; input.style.width = "95%";
+    input.value = text;
+    input.type = tipo;
+    input.style.textAlign = "center";
     return input;
 }
 
-function gerarRelatorio(tipo="diario"){
-    const hoje = new Date();
-    const linhas = document.querySelectorAll("#tabelaServicos tbody tr");
-    let totalRegistros = 0, totalPago = 0, totalNaoPago = 0, somaPago = 0, somaNaoPago = 0;
-
-    linhas.forEach(linha=>{
-        const [serv, ass, precoCell, dataCell, statusCell] = linha.cells;
-        const preco = parseFloat(precoCell.querySelector('input').value) || 0;
-        const status = statusCell.querySelector('select').value;
-
-        const [dia, mes, ano] = dataCell.innerText.split('/').map(Number);
-        const dataItem = new Date(ano, mes-1, dia);
-
-        const mesmoDia = dataItem.toLocaleDateString('pt-BR') === hoje.toLocaleDateString('pt-BR');
-        const mesmoMes = (dataItem.getMonth()===hoje.getMonth() && dataItem.getFullYear()===hoje.getFullYear());
-
-        if((tipo==="diario" && mesmoDia) || (tipo==="mensal" && mesmoMes)){
-            totalRegistros++;
-            if(status==="Pago"){ totalPago++; somaPago += preco; }
-            else if(status==="Não Pago"){ totalNaoPago++; somaNaoPago += preco; }
-        }
+// ---------- SALVAR E CARREGAR ----------
+function salvarDados(){
+    const linhas = [];
+    document.querySelectorAll("#tabelaFornecimentos tbody tr").forEach(linha=>{
+        const cells = linha.querySelectorAll("td");
+        linhas.push({
+            empresa: cells[0].firstChild.value,
+            fornecedor: cells[1].firstChild.value,
+            material: cells[2].firstChild.value,
+            quantidade: cells[3].firstChild.value,
+            preco: cells[4].firstChild.value,
+            data: cells[6].innerText,
+            status: cells[7].firstChild.value
+        });
     });
-
-    const titulo = tipo==="diario" ? 
-        `Relatório Detalhado de ${hoje.toLocaleDateString('pt-BR')}` :
-        `Relatório Mensal de ${hoje.toLocaleDateString('pt-BR', { month:'long', year:'numeric' })}`;
-
-    return `
-        <b>${titulo}</b><br><br>
-        Foram registados <b>${totalRegistros}</b> serviços.
-        Dentre estes, <b>${totalPago}</b> foram marcados como <span style="color:green">PAGO</span>,
-        totalizando um valor recebido de <b>MT ${somaPago.toFixed(2)}</b>.
-        Por outro lado, <b>${totalNaoPago}</b> serviços permanecem com o status de
-        <span style="color:red">NÃO PAGO</span>, somando um valor pendente de <b>MT ${somaNaoPago.toFixed(2)}</b>.
-    `;
+    localStorage.setItem("fornecimentos", JSON.stringify(linhas));
 }
 
-function atualizarRelatorio(){
-    document.getElementById("relatorioDiario").innerHTML = gerarRelatorio("diario");
+function carregarDados(){
+    const dados = JSON.parse(localStorage.getItem("fornecimentos") || "[]");
+    dados.forEach(item=> adicionarLinha(item));
 }
 
-document.getElementById('cadastroForm').addEventListener('submit', function(event){
-    event.preventDefault();
-    const servico = document.getElementById('servico').value;
-    const assinatura = document.getElementById('assinatura').value;
-    const preco = parseFloat(document.getElementById('preco').value).toFixed(2);
-    const status = document.getElementById('status').value;
-    const data = new Date().toLocaleDateString('pt-BR');
-
-    const tabela = document.getElementById('tabelaServicos').querySelector('tbody');
+// ---------- ADICIONAR LINHA ----------
+function adicionarLinha(dado){
+    const tabela = document.getElementById('tabelaFornecimentos').querySelector('tbody');
     const novaLinha = tabela.insertRow();
 
-    novaLinha.insertCell(0).appendChild(criarCelulaEditavel(servico));
-    novaLinha.insertCell(1).appendChild(criarCelulaEditavel(assinatura));
-    novaLinha.insertCell(2).appendChild(criarCelulaEditavel(preco, "number"));
-    novaLinha.insertCell(3).innerText = data;
+    const celulaEmpresa = novaLinha.insertCell(0); celulaEmpresa.appendChild(criarCelulaEditavel(dado.empresa));
+    const celulaFornecedor = novaLinha.insertCell(1); celulaFornecedor.appendChild(criarCelulaEditavel(dado.fornecedor));
+    const celulaMaterial = novaLinha.insertCell(2); celulaMaterial.appendChild(criarCelulaEditavel(dado.material));
+    const celulaQuantidade = novaLinha.insertCell(3); celulaQuantidade.appendChild(criarCelulaEditavel(dado.quantidade, "number"));
+    const celulaPreco = novaLinha.insertCell(4); celulaPreco.appendChild(criarCelulaEditavel(dado.preco, "number"));
+    const celulaTotal = novaLinha.insertCell(5); celulaTotal.innerText = `R$ ${(dado.quantidade * dado.preco).toFixed(2)}`;
+    const celulaData = novaLinha.insertCell(6); celulaData.innerText = dado.data;
 
-    const statusCell = novaLinha.insertCell(4);
+    // Status
+    const statusCell = novaLinha.insertCell(7);
     const selectStatus = document.createElement('select');
     selectStatus.className = 'statusSelect';
     ['Pago','Não Pago'].forEach(op=>{
         const option = document.createElement('option');
         option.value = op; option.text = op;
-        if(op===status) option.selected = true;
+        if(op === dado.status) option.selected = true;
         selectStatus.appendChild(option);
     });
     atualizarCorStatus(selectStatus);
     statusCell.appendChild(selectStatus);
 
-    const acaoCell = novaLinha.insertCell(5);
+    // Botão eliminar
+    const acaoCell = novaLinha.insertCell(8);
     const botaoExcluir = document.createElement('button');
     botaoExcluir.innerText = "Eliminar"; botaoExcluir.className = "deleteBtn";
     botaoExcluir.disabled = selectStatus.value !== "Pago";
     botaoExcluir.addEventListener('click', ()=>{
         novaLinha.remove();
-        atualizarRelatorio();
+        salvarDados();
     });
     acaoCell.appendChild(botaoExcluir);
 
+    // Atualizações dinâmicas
     function atualizarTudo(){
         atualizarCorStatus(selectStatus);
         botaoExcluir.disabled = selectStatus.value !== "Pago";
-        atualizarRelatorio();
+        const qtd = parseFloat(celulaQuantidade.firstChild.value) || 0;
+        const precoUni = parseFloat(celulaPreco.firstChild.value) || 0;
+        celulaTotal.innerText = `R$ ${(qtd*precoUni).toFixed(2)}`;
+        salvarDados();
     }
-    [selectStatus,
-     novaLinha.cells[2].querySelector('input'),
-     novaLinha.cells[1].querySelector('input'),
-     novaLinha.cells[0].querySelector('input')
-    ].forEach(el=>el.addEventListener('input', atualizarTudo));
-    selectStatus.addEventListener('change', atualizarTudo);
-
-    document.getElementById('cadastroForm').reset();
-    atualizarRelatorio();
-});
-
-function gerarPDF(tipo="diario"){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const hoje = new Date().toLocaleDateString('pt-BR');
-    const tituloCabecalho = tipo==="diario" ? "Relatório Diário" : "Relatório Mensal";
-
-    doc.setFont("times", "bold");
-    doc.setFontSize(14);
-    doc.text("REPÚBLICA DE MOÇAMBIQUE", 105, 20, null, null, "center");
-    doc.text("Papelaria Muipeliua", 105, 28, null, null, "center");
-    doc.text(`${tituloCabecalho} - ${hoje}`, 105, 36, null, null, "center");
-    doc.line(20, 40, 190, 40);
-
-    const textoRelatorio = gerarRelatorio(tipo).replace(/<[^>]+>/g, '');
-    doc.setFont("times", "normal");
-    doc.setFontSize(14);
-    doc.setLineHeightFactor(1.5);
-    doc.text(textoRelatorio, 20, 50, { maxWidth: 170, align: "justify" });
-
-    const nomeArquivo = tipo==="diario" ? `Relatorio_Diario_${hoje}.pdf`
-                                        : `Relatorio_Mensal_${hoje}.pdf`;
-    doc.save(nomeArquivo);
+    [selectStatus, celulaQuantidade.firstChild, celulaPreco.firstChild].forEach(el=>{
+        el.addEventListener('input', atualizarTudo);
+        el.addEventListener('change', atualizarTudo);
+    });
 }
 
-document.getElementById("btnPDFdiario").addEventListener("click", ()=>gerarPDF("diario"));
-document.getElementById("btnPDFmensal").addEventListener("click", ()=>gerarPDF("mensal"));
+// ---------- FORMULÁRIO ----------
+document.getElementById('cadastroForm').addEventListener('submit', function(event){
+    event.preventDefault();
+
+    const empresa = document.getElementById('empresa').value;
+    const fornecedor = document.getElementById('fornecedor').value;
+    const material = document.getElementById('material').value;
+    const quantidade = parseFloat(document.getElementById('quantidade').value);
+    const preco = parseFloat(document.getElementById('preco').value);
+    const status = document.getElementById('status').value;
+    const data = new Date().toLocaleDateString('pt-BR');
+
+    adicionarLinha({empresa, fornecedor, material, quantidade, preco, status, data});
+    salvarDados();
+    document.getElementById('cadastroForm').reset();
+});
+
+// ---------- INICIAR ----------
+window.addEventListener("load", carregarDados);
 </script>
 
 </body>
 </html>
+
