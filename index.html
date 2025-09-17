@@ -11,7 +11,7 @@
     }
     .container {
         background-color: #fff; padding: 20px; border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 850px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 750px;
     }
     h1, h2 { text-align: center; color: #333; }
     form {
@@ -20,23 +20,22 @@
     }
     form div { display: flex; flex-direction: column; }
     label { margin-bottom: 3px; font-weight: bold; font-size: 14px; }
-    input, select, textarea {
+    input, select {
         width: 100%; padding: 5px; border: 1px solid #ccc;
         border-radius: 4px; text-align: center; font-size: 14px;
     }
-    textarea { resize: vertical; height: 60px; text-align: left; }
     .full-width { grid-column: 1 / 3; }
     button {
         background-color: #28a745; color: white; padding: 6px 10px;
         border: none; border-radius: 4px; cursor: pointer;
-        font-size: 14px; grid-column: 1 / 3; justify-self: center;
+        font-size: 14px; justify-self: center;
     }
     button:hover { background-color: #218838; }
     table {
         width: 100%; border-collapse: collapse;
         margin-top: 15px; text-align: left; font-size: 14px;
     }
-    th, td { border: 1px solid #ddd; padding: 6px; vertical-align: top; }
+    th, td { border: 1px solid #ddd; padding: 6px; }
     th { background-color: #f2f2f2; }
     tbody tr:nth-child(odd) { background-color: #f9f9f9; }
     select.statusSelect {
@@ -66,9 +65,7 @@
     <form id="cadastroForm">
         <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
         <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
-        <div class="full-width"><label>Descrição Detalhada:</label>
-            <textarea id="descricao" placeholder="Descreva o serviço prestado"></textarea></div>
-        <div><label>Preço (R$):</label><input type="number" id="preco" step="0.01" required></div>
+        <div><label>Preço (MT):</label><input type="number" id="preco" step="0.01" required></div>
         <div><label>Status:</label>
             <select id="status" required>
                 <option value="">Selecione</option>
@@ -83,88 +80,77 @@
     <table id="tabelaServicos">
         <thead>
             <tr>
-                <th>Serviço</th><th>Assinatura</th><th>Descrição</th>
-                <th>Preço</th><th>Data</th><th>Status</th><th>Ações</th>
+                <th>Serviço</th><th>Assinatura</th>
+                <th>Preço (MT)</th><th>Data</th><th>Status</th><th>Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <!-- Relatórios -->
     <div id="relatorioDiario" class="relatorio"></div>
-    <div id="relatorioMensal" class="relatorio"></div>
 
-    <button id="btnPDF" class="pdf-btn full-width">Baixar Relatório em PDF</button>
+    <button id="btnPDFdiario" class="pdf-btn full-width">Baixar Relatório Diário (PDF)</button>
+    <button id="btnPDFmensal" class="pdf-btn full-width">Baixar Relatório Mensal (PDF)</button>
 </div>
 
 <script>
 function atualizarCorStatus(select){
-    if(select.value === "Pago"){ select.style.color = "green"; }
-    else if(select.value === "Não Pago"){ select.style.color = "red"; }
-    else { select.style.color = "black"; }
+    select.style.color = (select.value === "Pago") ? "green" :
+                         (select.value === "Não Pago") ? "red" : "black";
 }
 
 function criarCelulaEditavel(text, tipo="text"){
-    const input = document.createElement(tipo==="textarea"?"textarea":"input");
-    if(tipo!=="textarea") input.type = tipo;
-    input.value = text; 
+    const input = document.createElement("input");
+    input.value = text; input.type = tipo;
     input.style.textAlign = "center"; input.style.width = "95%";
-    if(tipo==="textarea") input.style.height = "50px";
     return input;
 }
 
-function atualizarRelatorios(){
+function gerarRelatorio(tipo="diario"){
     const hoje = new Date();
-    const hojeStr = hoje.toLocaleDateString('pt-BR');
-    const mesAtual = hoje.getMonth();
-    const anoAtual = hoje.getFullYear();
     const linhas = document.querySelectorAll("#tabelaServicos tbody tr");
+    let totalRegistros = 0, totalPago = 0, totalNaoPago = 0, somaPago = 0, somaNaoPago = 0;
 
-    // === DIÁRIO ===
-    let totalDia=0, pagoDia=0, naoPagoDia=0, somaPagoDia=0, somaNaoPagoDia=0;
     linhas.forEach(linha=>{
-        const data = linha.cells[4].innerText;
-        if(data===hojeStr){
-            totalDia++;
-            const preco = parseFloat(linha.cells[3].querySelector('input').value) || 0;
-            const status = linha.cells[5].querySelector('select').value;
-            if(status==="Pago"){ pagoDia++; somaPagoDia+=preco; }
-            else { naoPagoDia++; somaNaoPagoDia+=preco; }
+        const [serv, ass, precoCell, dataCell, statusCell] = linha.cells;
+        const preco = parseFloat(precoCell.querySelector('input').value) || 0;
+        const status = statusCell.querySelector('select').value;
+
+        const [dia, mes, ano] = dataCell.innerText.split('/').map(Number);
+        const dataItem = new Date(ano, mes-1, dia);
+
+        const mesmoDia = dataItem.toLocaleDateString('pt-BR') === hoje.toLocaleDateString('pt-BR');
+        const mesmoMes = (dataItem.getMonth()===hoje.getMonth() && dataItem.getFullYear()===hoje.getFullYear());
+
+        if((tipo==="diario" && mesmoDia) || (tipo==="mensal" && mesmoMes)){
+            totalRegistros++;
+            if(status==="Pago"){ totalPago++; somaPago += preco; }
+            else if(status==="Não Pago"){ totalNaoPago++; somaNaoPago += preco; }
         }
     });
-    document.getElementById("relatorioDiario").innerHTML = `
-        <b>Relatório Diário (${hojeStr})</b><br>
-        Total Serviços: <b>${totalDia}</b><br>
-        Pagos: <b style="color:green">${pagoDia}</b> (R$ ${somaPagoDia.toFixed(2)})<br>
-        Não Pagos: <b style="color:red">${naoPagoDia}</b> (R$ ${somaNaoPagoDia.toFixed(2)})
-    `;
 
-    // === MENSAL ===
-    let totalMes=0, pagoMes=0, naoPagoMes=0, somaPagoMes=0, somaNaoPagoMes=0;
-    linhas.forEach(linha=>{
-        const [dia, mes, ano] = linha.cells[4].innerText.split('/');
-        if(parseInt(mes)-1===mesAtual && parseInt(ano)===anoAtual){
-            totalMes++;
-            const preco = parseFloat(linha.cells[3].querySelector('input').value) || 0;
-            const status = linha.cells[5].querySelector('select').value;
-            if(status==="Pago"){ pagoMes++; somaPagoMes+=preco; }
-            else { naoPagoMes++; somaNaoPagoMes+=preco; }
-        }
-    });
-    document.getElementById("relatorioMensal").innerHTML = `
-        <b>Relatório Mensal (${hoje.toLocaleString('pt-BR',{month:'long'})}/${anoAtual})</b><br>
-        Total Serviços: <b>${totalMes}</b><br>
-        Pagos: <b style="color:green">${pagoMes}</b> (R$ ${somaPagoMes.toFixed(2)})<br>
-        Não Pagos: <b style="color:red">${naoPagoMes}</b> (R$ ${somaNaoPagoMes.toFixed(2)})
+    const titulo = tipo==="diario" ? 
+        `Relatório Detalhado de ${hoje.toLocaleDateString('pt-BR')}` :
+        `Relatório Mensal de ${hoje.toLocaleDateString('pt-BR', { month:'long', year:'numeric' })}`;
+
+    return `
+        <b>${titulo}</b><br><br>
+        Foram registados <b>${totalRegistros}</b> serviços.
+        Dentre estes, <b>${totalPago}</b> foram marcados como <span style="color:green">PAGO</span>,
+        totalizando um valor recebido de <b>MT ${somaPago.toFixed(2)}</b>.
+        Por outro lado, <b>${totalNaoPago}</b> serviços permanecem com o status de
+        <span style="color:red">NÃO PAGO</span>, somando um valor pendente de <b>MT ${somaNaoPago.toFixed(2)}</b>.
     `;
+}
+
+function atualizarRelatorio(){
+    document.getElementById("relatorioDiario").innerHTML = gerarRelatorio("diario");
 }
 
 document.getElementById('cadastroForm').addEventListener('submit', function(event){
     event.preventDefault();
-
     const servico = document.getElementById('servico').value;
     const assinatura = document.getElementById('assinatura').value;
-    const descricao = document.getElementById('descricao').value;
     const preco = parseFloat(document.getElementById('preco').value).toFixed(2);
     const status = document.getElementById('status').value;
     const data = new Date().toLocaleDateString('pt-BR');
@@ -174,12 +160,10 @@ document.getElementById('cadastroForm').addEventListener('submit', function(even
 
     novaLinha.insertCell(0).appendChild(criarCelulaEditavel(servico));
     novaLinha.insertCell(1).appendChild(criarCelulaEditavel(assinatura));
-    novaLinha.insertCell(2).appendChild(criarCelulaEditavel(descricao,"textarea"));
-    novaLinha.insertCell(3).appendChild(criarCelulaEditavel(preco,"number"));
-    novaLinha.insertCell(4).innerText = data;
+    novaLinha.insertCell(2).appendChild(criarCelulaEditavel(preco, "number"));
+    novaLinha.insertCell(3).innerText = data;
 
-    // Status
-    const statusCell = novaLinha.insertCell(5);
+    const statusCell = novaLinha.insertCell(4);
     const selectStatus = document.createElement('select');
     selectStatus.className = 'statusSelect';
     ['Pago','Não Pago'].forEach(op=>{
@@ -191,55 +175,59 @@ document.getElementById('cadastroForm').addEventListener('submit', function(even
     atualizarCorStatus(selectStatus);
     statusCell.appendChild(selectStatus);
 
-    // Botão excluir
-    const acaoCell = novaLinha.insertCell(6);
+    const acaoCell = novaLinha.insertCell(5);
     const botaoExcluir = document.createElement('button');
     botaoExcluir.innerText = "Eliminar"; botaoExcluir.className = "deleteBtn";
     botaoExcluir.disabled = selectStatus.value !== "Pago";
     botaoExcluir.addEventListener('click', ()=>{
         novaLinha.remove();
-        atualizarRelatorios();
+        atualizarRelatorio();
     });
     acaoCell.appendChild(botaoExcluir);
 
     function atualizarTudo(){
         atualizarCorStatus(selectStatus);
         botaoExcluir.disabled = selectStatus.value !== "Pago";
-        atualizarRelatorios();
+        atualizarRelatorio();
     }
     [selectStatus,
-     ...Array.from(novaLinha.querySelectorAll('input,textarea'))
+     novaLinha.cells[2].querySelector('input'),
+     novaLinha.cells[1].querySelector('input'),
+     novaLinha.cells[0].querySelector('input')
     ].forEach(el=>el.addEventListener('input', atualizarTudo));
     selectStatus.addEventListener('change', atualizarTudo);
 
     document.getElementById('cadastroForm').reset();
-    atualizarRelatorios();
+    atualizarRelatorio();
 });
 
-// PDF
-document.getElementById("btnPDF").addEventListener("click", ()=>{
+function gerarPDF(tipo="diario"){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const hoje = new Date().toLocaleDateString('pt-BR');
+    const tituloCabecalho = tipo==="diario" ? "Relatório Diário" : "Relatório Mensal";
 
     doc.setFont("times", "bold");
     doc.setFontSize(14);
     doc.text("REPÚBLICA DE MOÇAMBIQUE", 105, 20, null, null, "center");
     doc.text("Papelaria Muipeliua", 105, 28, null, null, "center");
-    doc.text(`Relatório Diário/Mensal - ${hoje}`, 105, 36, null, null, "center");
+    doc.text(`${tituloCabecalho} - ${hoje}`, 105, 36, null, null, "center");
     doc.line(20, 40, 190, 40);
 
-    const texto = document.getElementById("relatorioDiario").innerText + "\n\n" +
-                  document.getElementById("relatorioMensal").innerText;
-    doc.setFont("times","normal");
-    doc.setFontSize(12);
-    doc.text(texto, 20, 50, { maxWidth: 170, align: "justify" });
+    const textoRelatorio = gerarRelatorio(tipo).replace(/<[^>]+>/g, '');
+    doc.setFont("times", "normal");
+    doc.setFontSize(14);
+    doc.setLineHeightFactor(1.5);
+    doc.text(textoRelatorio, 20, 50, { maxWidth: 170, align: "justify" });
 
-    doc.save(`Relatorio_Papelaria_${hoje}.pdf`);
-});
+    const nomeArquivo = tipo==="diario" ? `Relatorio_Diario_${hoje}.pdf`
+                                        : `Relatorio_Mensal_${hoje}.pdf`;
+    doc.save(nomeArquivo);
+}
 
-// Inicializa relatório ao carregar a página
-atualizarRelatorios();
+document.getElementById("btnPDFdiario").addEventListener("click", ()=>gerarPDF("diario"));
+document.getElementById("btnPDFmensal").addEventListener("click", ()=>gerarPDF("mensal"));
 </script>
+
 </body>
 </html>
