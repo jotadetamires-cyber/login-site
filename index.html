@@ -2,176 +2,97 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Fornecimentos</title>
+<title>Cadastro de Serviços Online</title>
 <style>
-    body { font-family: Arial; margin: 20px; background-color: #f4f4f4; display: flex; justify-content: center; }
-    .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 950px; }
-    h1, h2 { text-align: center; color: #333; }
-    form { margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
-    form div { display: flex; flex-direction: column; }
-    label { margin-bottom: 3px; font-weight: bold; font-size: 14px; }
-    input, select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
-    .full-width { grid-column: 1 / 3; }
-    button { background-color: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; grid-column: 1 / 3; justify-self: center; }
-    button:hover { background-color: #218838; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background-color: #f2f2f2; }
-    tbody tr:nth-child(odd) { background-color: #f9f9f9; }
-    select.statusSelect { width: 100%; border: none; background-color: transparent; text-align: center; font-weight: bold; }
-    button.deleteBtn { background-color: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; }
-    button.deleteBtn:hover { background-color: #c82333; }
+  body { font-family: Arial; margin: 20px; }
+  input { margin: 5px; }
+  button { margin: 5px; }
 </style>
 </head>
 <body>
+<h2>Cadastro de Serviços</h2>
 
-<div class="container">
-    <h1>Fornecimentos Muipeliua</h1>
-    <form id="cadastroForm">
-        <div><label>Nome da Empresa:</label><input type="text" id="empresa" required></div>
-        <div><label>Fornecedor:</label><input type="text" id="fornecedor" required></div>
-        <div><label>Material Fornecido:</label><input type="text" id="material" required></div>
-        <div><label>Quantidade:</label><input type="number" id="quantidade" required></div>
-        <div><label>Preço Unitário (R$):</label><input type="number" id="preco" step="0.01" required></div>
-        <div><label>Status:</label>
-            <select id="status" required>
-                <option value="">Selecione</option>
-                <option value="Pago">Pago</option>
-                <option value="Não Pago">Não Pago</option>
-            </select>
-        </div>
-        <button type="submit" class="full-width">Cadastrar</button>
-    </form>
+<form id="formServico">
+  <input type="text" id="nome" placeholder="Nome do serviço" required>
+  <input type="number" id="preco" placeholder="Preço" required>
+  <button type="submit">Cadastrar</button>
+</form>
 
-    <h2>Fornecimentos Cadastrados</h2>
-    <table id="tabelaFornecimentos">
-        <thead>
-            <tr>
-                <th>Empresa</th><th>Fornecedor</th><th>Material</th><th>Quantidade</th>
-                <th>Preço Unitário</th><th>Preço Total</th><th>Data</th><th>Status</th><th>Ações</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+<h3>Lista de Serviços:</h3>
+<ul id="listaServicos"></ul>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.16.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.16.0/firebase-database-compat.js"></script>
 
 <script>
-// ---------- FUNÇÕES BÁSICAS ----------
-function atualizarCorStatus(select){
-    if(select.value === "Pago"){
-        select.style.color = "green";
-    } else if(select.value === "Não Pago"){
-        select.style.color = "red";
-    } else {
-        select.style.color = "black";
+// Configurações do seu projeto Firebase
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  databaseURL: "SUA_DATABASE_URL",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_STORAGE_BUCKET",
+  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+const form = document.getElementById('formServico');
+const listaServicos = document.getElementById('listaServicos');
+let editId = null; // ID do serviço que está sendo editado
+
+// Cadastrar ou atualizar serviço
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const nome = document.getElementById('nome').value;
+    const preco = document.getElementById('preco').value;
+
+    if(editId){ // Atualizar
+        database.ref('servicos/' + editId).update({nome, preco});
+        editId = null;
+    } else { // Criar
+        const novoServicoRef = database.ref('servicos').push();
+        novoServicoRef.set({nome, preco});
     }
-}
 
-function criarCelulaEditavel(text, tipo="text"){
-    const input = document.createElement("input");
-    input.value = text;
-    input.type = tipo;
-    input.style.textAlign = "center";
-    return input;
-}
-
-// ---------- SALVAR E CARREGAR ----------
-function salvarDados(){
-    const linhas = [];
-    document.querySelectorAll("#tabelaFornecimentos tbody tr").forEach(linha=>{
-        const cells = linha.querySelectorAll("td");
-        linhas.push({
-            empresa: cells[0].firstChild.value,
-            fornecedor: cells[1].firstChild.value,
-            material: cells[2].firstChild.value,
-            quantidade: cells[3].firstChild.value,
-            preco: cells[4].firstChild.value,
-            data: cells[6].innerText,
-            status: cells[7].firstChild.value
-        });
-    });
-    localStorage.setItem("fornecimentos", JSON.stringify(linhas));
-}
-
-function carregarDados(){
-    const dados = JSON.parse(localStorage.getItem("fornecimentos") || "[]");
-    dados.forEach(item=> adicionarLinha(item));
-}
-
-// ---------- ADICIONAR LINHA ----------
-function adicionarLinha(dado){
-    const tabela = document.getElementById('tabelaFornecimentos').querySelector('tbody');
-    const novaLinha = tabela.insertRow();
-
-    const celulaEmpresa = novaLinha.insertCell(0); celulaEmpresa.appendChild(criarCelulaEditavel(dado.empresa));
-    const celulaFornecedor = novaLinha.insertCell(1); celulaFornecedor.appendChild(criarCelulaEditavel(dado.fornecedor));
-    const celulaMaterial = novaLinha.insertCell(2); celulaMaterial.appendChild(criarCelulaEditavel(dado.material));
-    const celulaQuantidade = novaLinha.insertCell(3); celulaQuantidade.appendChild(criarCelulaEditavel(dado.quantidade, "number"));
-    const celulaPreco = novaLinha.insertCell(4); celulaPreco.appendChild(criarCelulaEditavel(dado.preco, "number"));
-    const celulaTotal = novaLinha.insertCell(5); celulaTotal.innerText = `R$ ${(dado.quantidade * dado.preco).toFixed(2)}`;
-    const celulaData = novaLinha.insertCell(6); celulaData.innerText = dado.data;
-
-    // Status
-    const statusCell = novaLinha.insertCell(7);
-    const selectStatus = document.createElement('select');
-    selectStatus.className = 'statusSelect';
-    ['Pago','Não Pago'].forEach(op=>{
-        const option = document.createElement('option');
-        option.value = op; option.text = op;
-        if(op === dado.status) option.selected = true;
-        selectStatus.appendChild(option);
-    });
-    atualizarCorStatus(selectStatus);
-    statusCell.appendChild(selectStatus);
-
-    // Botão eliminar
-    const acaoCell = novaLinha.insertCell(8);
-    const botaoExcluir = document.createElement('button');
-    botaoExcluir.innerText = "Eliminar"; botaoExcluir.className = "deleteBtn";
-    botaoExcluir.disabled = selectStatus.value !== "Pago";
-    botaoExcluir.addEventListener('click', ()=>{
-        novaLinha.remove();
-        salvarDados();
-    });
-    acaoCell.appendChild(botaoExcluir);
-
-    // Atualizações dinâmicas
-    function atualizarTudo(){
-        atualizarCorStatus(selectStatus);
-        botaoExcluir.disabled = selectStatus.value !== "Pago";
-        const qtd = parseFloat(celulaQuantidade.firstChild.value) || 0;
-        const precoUni = parseFloat(celulaPreco.firstChild.value) || 0;
-        celulaTotal.innerText = `R$ ${(qtd*precoUni).toFixed(2)}`;
-        salvarDados();
-    }
-    [selectStatus, celulaQuantidade.firstChild, celulaPreco.firstChild].forEach(el=>{
-        el.addEventListener('input', atualizarTudo);
-        el.addEventListener('change', atualizarTudo);
-    });
-}
-
-// ---------- FORMULÁRIO ----------
-document.getElementById('cadastroForm').addEventListener('submit', function(event){
-    event.preventDefault();
-
-    const empresa = document.getElementById('empresa').value;
-    const fornecedor = document.getElementById('fornecedor').value;
-    const material = document.getElementById('material').value;
-    const quantidade = parseFloat(document.getElementById('quantidade').value);
-    const preco = parseFloat(document.getElementById('preco').value);
-    const status = document.getElementById('status').value;
-    const data = new Date().toLocaleDateString('pt-BR');
-
-    adicionarLinha({empresa, fornecedor, material, quantidade, preco, status, data});
-    salvarDados();
-    document.getElementById('cadastroForm').reset();
+    form.reset();
 });
 
-// ---------- INICIAR ----------
-window.addEventListener("load", carregarDados);
-</script>
+// Ler dados em tempo real
+const servicosRef = database.ref('servicos');
+servicosRef.on('value', (snapshot) => {
+    listaServicos.innerHTML = '';
+    const dados = snapshot.val();
+    for (let id in dados) {
+        const s = dados[id];
+        const li = document.createElement('li');
+        li.textContent = `${s.nome} - $${s.preco}`;
 
+        // Botão Editar
+        const btnEditar = document.createElement('button');
+        btnEditar.textContent = 'Editar';
+        btnEditar.onclick = () => {
+            document.getElementById('nome').value = s.nome;
+            document.getElementById('preco').value = s.preco;
+            editId = id;
+        };
+
+        // Botão Deletar
+        const btnDeletar = document.createElement('button');
+        btnDeletar.textContent = 'Deletar';
+        btnDeletar.onclick = () => {
+            database.ref('servicos/' + id).remove();
+        };
+
+        li.appendChild(btnEditar);
+        li.appendChild(btnDeletar);
+        listaServicos.appendChild(li);
+    }
+});
+</script>
 </body>
 </html>
-
