@@ -1,102 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Serviços</title>
-<style>
-    body {
-        font-family: Arial; margin: 20px;
-        background-color: #f4f4f4; display: flex; justify-content: center;
-    }
-    .container {
-        background-color: #fff; padding: 20px; border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 750px;
-    }
-    h1, h2 { text-align: center; color: #333; }
-    form {
-        margin-bottom: 20px; display: grid;
-        grid-template-columns: 1fr 1fr; gap: 10px 15px;
-    }
-    form div { display: flex; flex-direction: column; }
-    label { margin-bottom: 3px; font-weight: bold; font-size: 14px; }
-    input, select {
-        width: 100%; padding: 5px; border: 1px solid #ccc;
-        border-radius: 4px; text-align: center; font-size: 14px;
-    }
-    .full-width { grid-column: 1 / 3; }
-    button {
-        background-color: #28a745; color: white; padding: 6px 10px;
-        border: none; border-radius: 4px; cursor: pointer;
-        font-size: 14px; grid-column: 1 / 3; justify-self: center;
-    }
-    button:hover { background-color: #218838; }
-    table {
-        width: 100%; border-collapse: collapse;
-        margin-top: 15px; text-align: left; font-size: 14px;
-    }
-    th, td { border: 1px solid #ddd; padding: 6px; }
-    th { background-color: #f2f2f2; }
-    tbody tr:nth-child(odd) { background-color: #f9f9f9; }
-    select.statusSelect {
-        width: 100%; border: none; background-color: transparent;
-        text-align: center; font-weight: bold;
-    }
-    button.deleteBtn {
-        background-color: #dc3545; color: white; padding: 4px 8px;
-        border-radius: 4px; border: none; cursor: pointer; font-size: 13px;
-    }
-    button.deleteBtn:hover { background-color: #c82333; }
-    .relatorio {
-        margin-top: 20px; background: #f2f2f2;
-        padding: 10px; border-radius: 6px; font-size: 15px;
-    }
-    .pdf-btn { background-color: #007bff; margin-top: 15px; }
-    .pdf-btn:hover { background-color: #0069d9; }
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body>
-
-<div class="container">
-    <h1>Cadastro de Serviços</h1>
-    <form id="cadastroForm">
-        <div><label>Tipo de Serviço:</label><input type="text" id="servico" required></div>
-        <div><label>Assinatura:</label><input type="text" id="assinatura" required></div>
-        <div><label>Preço (MT):</label><input type="number" id="preco" step="0.01" required></div>
-        <div><label>Status:</label>
-            <select id="status" required>
-                <option value="">Selecione</option>
-                <option value="Pago">Pago</option>
-                <option value="Não Pago">Não Pago</option>
-            </select>
-        </div>
-        <button type="submit" class="full-width">Cadastrar</button>
-    </form>
-
-    <h2>Registros Cadastrados</h2>
-    <table id="tabelaServicos">
-        <thead>
-            <tr>
-                <th>Serviço</th><th>Assinatura</th>
-                <th>Preço (MT)</th><th>Data</th><th>Status</th><th>Ações</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <div style="margin-top:15px;">
-        <label><b>Tipo de Relatório:</b></label>
-        <select id="tipoRelatorio">
-            <option value="diario">Diário</option>
-            <option value="mensal">Mensal</option>
-        </select>
-    </div>
-
-    <div id="relatorioResumo" class="relatorio"></div>
-    <button id="btnPDF" class="pdf-btn full-width">Baixar Relatório em PDF</button>
-</div>
-
 <script>
 function atualizarCorStatus(select){
     if(select.value === "Pago"){ select.style.color = "green"; }
@@ -119,7 +20,9 @@ function gerarRelatorio(){
     const anoAtual = hoje.getFullYear();
     const tipo = document.getElementById("tipoRelatorio").value;
 
-    let totalRegistros = 0, totalPago = 0, totalNaoPago = 0, somaPago = 0, somaNaoPago = 0;
+    let totalRegistros = 0, totalPago = 0, totalNaoPago = 0;
+    let somaPago = 0, somaNaoPago = 0;
+    let listaPago = [], listaNaoPago = [];
 
     linhas.forEach(linha=>{
         const dataStr = linha.cells[3].innerText;
@@ -127,14 +30,21 @@ function gerarRelatorio(){
         const data = new Date(partes[2], partes[1]-1, partes[0]);
         const preco = parseFloat(linha.cells[2].querySelector('input').value) || 0;
         const status = linha.cells[4].querySelector('select').value;
+        const servico = linha.cells[0].querySelector('input').value;
+        const assinatura = linha.cells[1].querySelector('input').value;
 
         const eHoje = dataStr === hojeTexto;
         const eMesAtual = data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
 
         if((tipo==="diario" && eHoje) || (tipo==="mensal" && eMesAtual)){
             totalRegistros++;
-            if(status==="Pago"){ totalPago++; somaPago += preco; }
-            else if(status==="Não Pago"){ totalNaoPago++; somaNaoPago += preco; }
+            if(status==="Pago"){
+                totalPago++; somaPago += preco;
+                listaPago.push(`• ${servico} (${assinatura}) no valor de ${preco.toFixed(2)} MT`);
+            } else if(status==="Não Pago"){
+                totalNaoPago++; somaNaoPago += preco;
+                listaNaoPago.push(`• ${servico} (${assinatura}) no valor de ${preco.toFixed(2)} MT`);
+            }
         }
     });
 
@@ -142,15 +52,27 @@ function gerarRelatorio(){
         `Relatório Detalhado de ${hojeTexto}` :
         `Relatório Mensal (${hoje.toLocaleString('pt-BR',{month:'long'})} / ${anoAtual})`;
 
-    const relatorioTexto = `
-        <b>${titulo}</b><br><br>
-        Foram registados <b>${totalRegistros}</b> serviços.
-        Dentre estes, <b>${totalPago}</b> foram marcados como 
-        <span style="color:green">PAGO</span>, totalizando <b>${somaPago.toFixed(2)} MT</b>.
-        Há <b>${totalNaoPago}</b> serviços com status 
-        <span style="color:red">NÃO PAGO</span>, somando <b>${somaNaoPago.toFixed(2)} MT</b>.
-    `;
-    document.getElementById("relatorioResumo").innerHTML = relatorioTexto;
+    // --- Texto mais descritivo ---
+    let texto = `<b>${titulo}</b><br><br>`;
+    texto += `No dia a <b>Papelaria Muipeliua</b> atendeu um total de <b>${totalRegistros}</b> serviços. `;
+
+    if(totalPago > 0){
+        texto += `Foram <span style="color:green"><b>${totalPago}</b> serviços pagos</span>, 
+        gerando uma receita total de <b>${somaPago.toFixed(2)} MT</b>, conforme a lista:<br>`;
+        texto += listaPago.join("<br>") + "<br><br>";
+    } else {
+        texto += `Não houve serviços pagos neste período.<br><br>`;
+    }
+
+    if(totalNaoPago > 0){
+        texto += `Também foram registados <span style="color:red"><b>${totalNaoPago}</b> serviços não pagos</span>, 
+        somando <b>${somaNaoPago.toFixed(2)} MT</b>, descritos a seguir:<br>`;
+        texto += listaNaoPago.join("<br>") + "<br>";
+    } else {
+        texto += `Não houve serviços pendentes de pagamento.<br>`;
+    }
+
+    document.getElementById("relatorioResumo").innerHTML = texto;
 }
 
 document.getElementById('cadastroForm').addEventListener('submit', function(event){
@@ -227,7 +149,7 @@ document.getElementById("btnPDF").addEventListener("click", ()=>{
 
     const textoRelatorio = document.getElementById("relatorioResumo").innerText;
     doc.setFont("times", "normal");
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.text(textoRelatorio, 20, 50, { maxWidth: 170, align: "justify" });
 
     doc.save(`Relatorio_${tipo}_${hoje}.pdf`);
@@ -236,6 +158,3 @@ document.getElementById("btnPDF").addEventListener("click", ()=>{
 // inicializa
 window.addEventListener('load', gerarRelatorio);
 </script>
-
-</body>
-</html>
