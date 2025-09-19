@@ -1,261 +1,276 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<title>Controle de Dívidas Avançado</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
-  h1 { text-align: center; color: #333; }
-  form, #filtros, #resumo, #relatorio {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 700px;
-    margin: auto 0 20px auto;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  input, select, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
-  button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-  button:hover { background: #45a049; }
-  .total { font-weight: bold; margin-top: 10px; text-align: right; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  th { background: #eee; }
-  #resumo div { margin: 5px 0; font-weight: bold; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Dívidas</title>
+  <style>
+    :root{--green:#2e9b3a;--blue:#0080ff;--card:#fff;--bg:#f3f6f8}
+    html,body{height:100%;margin:0;font-family:Inter, Arial, Helvetica, sans-serif;background:var(--bg);color:#222}
+    .container{max-width:960px;margin:28px auto;padding:20px}
+    h1{text-align:center;font-size:34px;margin-bottom:18px}
+
+    .card{background:var(--card);border-radius:8px;padding:18px;box-shadow:0 6px 18px rgba(20,30,40,0.06)}
+    .form-row{display:flex;gap:12px;margin-bottom:10px}
+    .form-row .col{flex:1}
+    label{display:block;font-size:13px;margin-bottom:6px;color:#444}
+    input[type=text], input[type=number], input[type=date], select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
+    .btn{display:inline-block;padding:10px 14px;border-radius:6px;border:none;cursor:pointer}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-secondary{background:#2b8cff;color:#fff}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+
+    table{width:100%;border-collapse:collapse;margin-top:18px}
+    th,td{padding:10px;border:1px solid #e6eef8;text-align:left;font-size:14px}
+    thead th{background:var(--blue);color:#fff}
+
+    .actions{display:flex;gap:8px}
+    .small{font-size:13px;padding:8px 10px}
+
+    @media(max-width:720px){.form-row{flex-direction:column}}
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Controlo de Dívidas</h1>
 
-<h1>Controle de Dívidas Avançado</h1>
+    <div class="card">
+      <div class="form-row">
+        <div class="col">
+          <label for="nome">Nome do Beneficiário</label>
+          <input id="nome" type="text" placeholder="Nome do Beneficiário" />
+        </div>
+        <div class="col">
+          <label for="fornecedor">Fornecedor</label>
+          <input id="fornecedor" type="text" placeholder="Fornecedor" />
+        </div>
+      </div>
 
-<!-- Formulário de cadastro -->
-<form id="dividaForm">
-  <input type="text" id="nome" placeholder="Nome de beneficiário" required>
-  <input type="text" id="proprietario" placeholder="Proprietário" required>
-  <input type="text" id="material" placeholder="Material" required>
-  <input type="number" id="quantidade" placeholder="Quantidade" min="1" required>
-  <input type="number" id="preco_unit" placeholder="Preço Unitário" step="0.01" required>
-  <select id="status" required>
-    <option value="">Selecione o Status</option>
-    <option value="Pendente">Pendente</option>
-    <option value="Pago">Pago</option>
-  </select>
-  <div class="total">Preço Total: <span id="preco_total">0.00</span></div>
-  <button type="submit">Salvar</button>
-</form>
+      <div class="form-row">
+        <div class="col">
+          <label for="material">Material</label>
+          <input id="material" type="text" placeholder="Material" />
+        </div>
+        <div class="col">
+          <label for="quantidade">Quantidade</label>
+          <input id="quantidade" type="number" min="0" step="1" placeholder="Quantidade" />
+        </div>
+      </div>
 
-<!-- Filtros avançados -->
-<div id="filtros">
-  <input type="text" id="buscarNome" placeholder="Buscar por Nome">
-  <input type="text" id="buscarProprietario" placeholder="Buscar por Proprietário">
-  <label>Data Inicial:</label>
-  <input type="date" id="dataInicial">
-  <label>Data Final:</label>
-  <input type="date" id="dataFinal">
-  <button id="aplicarFiltros">Aplicar Filtros</button>
-  <button id="limparFiltros">Limpar Filtros</button>
-  <button id="buscarPendentes">Dívidas Pendentes</button>
-  <button id="gerarPDF">Gerar PDF do Filtro</button>
-</div>
+      <div class="form-row">
+        <div class="col">
+          <label for="preco">Preço Unitário</label>
+          <input id="preco" type="number" min="0" step="0.01" placeholder="Preço Unitário" />
+        </div>
+        <div class="col">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="">Selecione o Status</option>
+            <option value="Pendente">Pendente</option>
+            <option value="Pago">Pago</option>
+          </select>
+        </div>
+      </div>
 
-<!-- Resumo dinâmico -->
-<div id="resumo">
-  <div id="totalDividas">Total de Dívidas: 0</div>
-  <div id="totalPendentes">Total Pendentes: 0 (0.00)</div>
-  <div id="totalPagas">Total Pagas: 0 (0.00)</div>
-</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+        <button class="btn btn-green" id="btnAdicionar">Adicionar Dívida</button>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:6px;align-items:center">
+            <label style="font-size:13px;color:#555">Total:</label>
+            <strong id="previewTotal">0.00</strong>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- Relatório -->
-<div id="relatorio">
-  <table id="tabelaDividas">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Nome</th>
-        <th>Proprietário</th>
-        <th>Material</th>
-        <th>Quantidade</th>
-        <th>Preço Unitário</th>
-        <th>Preço Total</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
+      <input type="date" id="dataInicio" />
+      <input type="date" id="dataFim" />
+      <select id="filtroStatus">
+        <option value="Todos">Todos</option>
+        <option value="Pendente">Pendente</option>
+        <option value="Pago">Pago</option>
+      </select>
+      <div class="actions" style="margin-left:auto">
+        <button class="btn btn-secondary small" id="btnBuscar">Buscar</button>
+        <button class="btn btn-green small" id="btnGerarPDF">Gerar PDF</button>
+      </div>
+    </div>
 
-<!-- Bibliotecas PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Fornecedor</th>
+          <th>Material</th>
+          <th>Quantidade</th>
+          <th>Preço Unitário</th>
+          <th>Preço Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-<script>
-const form = document.getElementById("dividaForm");
-const qtd = document.getElementById("quantidade");
-const preco = document.getElementById("preco_unit");
-const total = document.getElementById("preco_total");
-const tabela = document.getElementById("tabelaDividas").querySelector("tbody");
-const buscarPendentesBtn = document.getElementById("buscarPendentes");
-const gerarPDFBtn = document.getElementById("gerarPDF");
-const aplicarFiltrosBtn = document.getElementById("aplicarFiltros");
-const limparFiltrosBtn = document.getElementById("limparFiltros");
+  <script>
+    // Helpers
+    function fmtNumber(v){
+      if (v === null || v === undefined || v === "") return '';
+      return parseFloat(v).toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
 
-const totalDividasEl = document.getElementById("totalDividas");
-const totalPendentesEl = document.getElementById("totalPendentes");
-const totalPagasEl = document.getElementById("totalPagas");
+    function calcularTotalPreview(){
+      const q = parseFloat(document.getElementById('quantidade').value) || 0;
+      const p = parseFloat(document.getElementById('preco').value) || 0;
+      document.getElementById('previewTotal').innerText = fmtNumber(q * p);
+    }
 
-let todasDividas = [];
+    // Atualiza preview quando mudam quantidade/preço
+    document.getElementById('quantidade').addEventListener('input', calcularTotalPreview);
+    document.getElementById('preco').addEventListener('input', calcularTotalPreview);
 
-// Calcular preço total
-function calcularTotal() {
-  const q = parseFloat(qtd.value) || 0;
-  const p = parseFloat(preco.value) || 0;
-  total.textContent = (q * p).toFixed(2);
-}
-qtd.addEventListener("input", calcularTotal);
-preco.addEventListener("input", calcularTotal);
+    // Adicionar dívida (chama backend do Google Apps Script)
+    document.getElementById('btnAdicionar').addEventListener('click', function(){
+      const nome = document.getElementById('nome').value.trim();
+      const fornecedor = document.getElementById('fornecedor').value.trim();
+      const material = document.getElementById('material').value.trim();
+      const quantidade = parseFloat(document.getElementById('quantidade').value) || 0;
+      const preco = parseFloat(document.getElementById('preco').value) || 0;
+      const status = document.getElementById('status').value;
 
-// Salvar dados
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const dados = {
-    data: new Date().toLocaleDateString(),
-    nome: document.getElementById("nome").value,
-    proprietario: document.getElementById("proprietario").value,
-    material: document.getElementById("material").value,
-    quantidade: qtd.value,
-    preco_unit: preco.value,
-    preco_total: (parseFloat(qtd.value) * parseFloat(preco.value)).toFixed(2),
-    status: document.getElementById("status").value
-  };
+      if(!nome || !fornecedor || !material || !status){
+        alert('Por favor preencha todos os campos obrigatórios (Nome, Fornecedor, Material, Status).');
+        return;
+      }
 
-  const resp = await fetch("https://script.google.com/macros/s/AKfycbyTWhcX27bmWNWHq6MMTcepqMipi_KAHhrTjALgDyALpmYgcosUa-PEud-B-rJxNjJx/exec", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dados)
-  });
+      if (typeof google === 'undefined' || !google.script){
+        alert('Este HTML deve ser servido via Google Apps Script (https://script.google.com/macros/s/AKfycbxwT6xGXU3dnvGmnL60_S6cQhMWQBB8TBi9X3O_ABDzy1kZBP8lqb9KBGvpj5FXPeTsEQ/exec). A função google.script.run não existe aqui.');
+        return;
+      }
 
-  if (resp.ok) {
-    alert("✅ Dados salvos com sucesso!");
-    form.reset();
-    total.textContent = "0.00";
-    buscarDividas();
-  } else {
-    alert("❌ Erro ao salvar. Verifique o Apps Script.");
-  }
-});
+      document.getElementById('btnAdicionar').disabled = true;
+      google.script.run.withSuccessHandler(function(res){
+        alert(res || 'Dívida adicionada.');
+        document.getElementById('nome').value = '';
+        document.getElementById('fornecedor').value = '';
+        document.getElementById('material').value = '';
+        document.getElementById('quantidade').value = '';
+        document.getElementById('preco').value = '';
+        document.getElementById('status').value = '';
+        calcularTotalPreview();
+        document.getElementById('btnAdicionar').disabled = false;
+        buscarDividas();
+      }).salvarDivida(nome, fornecedor, material, quantidade, preco, status);
+    });
 
-// Buscar dívidas
-async function buscarDividas() {
-  const resp = await fetch("https://script.google.com/macros/s/AKfycbyTWhcX27bmWNWHq6MMTcepqMipi_KAHhrTjALgDyALpmYgcosUa-PEud-B-rJxNjJx/exec?action=read");
-  todasDividas = await resp.json();
-  renderTabela(todasDividas);
-}
+    // Buscar dívidas com filtros
+    document.getElementById('btnBuscar').addEventListener('click', buscarDividas);
 
-// Renderiza tabela e atualiza resumo
-function renderTabela(dados) {
-  tabela.innerHTML = "";
-  let totalPendentes = 0;
-  let totalPagas = 0;
+    function buscarDividas(){
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
+      const status = document.getElementById('filtroStatus').value || 'Todos';
 
-  dados.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.data || ''}</td>
-      <td>${item.nome}</td>
-      <td>${item.proprietario}</td>
-      <td>${item.material}</td>
-      <td>${item.quantidade}</td>
-      <td>${item.preco_unit}</td>
-      <td>${item.preco_total}</td>
-      <td>${item.status}</td>
-    `;
-    tabela.appendChild(tr);
+      if (typeof google === 'undefined' || !google.script){
+        console.warn('google.script.run não disponível (teste local).');
+        return;
+      }
 
-    const precoTotal = parseFloat(item.preco_total) || 0;
-    if(item.status === "Pendente") totalPendentes += precoTotal;
-    else if(item.status === "Pago") totalPagas += precoTotal;
-  });
+      google.script.run.withSuccessHandler(preencherTabela).buscarDividas(inicio, fim, status);
+    }
 
-  // Atualiza resumo
-  totalDividasEl.textContent = `Total de Dívidas: ${dados.length}`;
-  totalPendentesEl.textContent = `Total Pendentes: ${dados.filter(d => d.status==="Pendente").length} (${totalPendentes.toFixed(2)})`;
-  totalPagasEl.textContent = `Total Pagas: ${dados.filter(d => d.status==="Pago").length} (${totalPagas.toFixed(2)})`;
-}
+    function preencherTabela(dados){
+      const tbody = document.querySelector('#tabela tbody');
+      tbody.innerHTML = '';
+      if (!dados || !dados.length) return;
 
-// Aplicar filtros
-aplicarFiltrosBtn.addEventListener("click", () => {
-  let filtrado = [...todasDividas];
-  const nome = document.getElementById("buscarNome").value.toLowerCase();
-  const proprietario = document.getElementById("buscarProprietario").value.toLowerCase();
-  const dataInicial = document.getElementById("dataInicial").value;
-  const dataFinal = document.getElementById("dataFinal").value;
+      dados.forEach(function(linha){
+        const tr = document.createElement('tr');
+        const cells = [linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7]];
+        cells.forEach(function(c, i){
+          const td = document.createElement('td');
+          if (i === 0){
+            let d = c;
+            if (typeof c === 'object' && c !== null && c.toISOString) d = new Date(c).toLocaleString();
+            td.innerText = d || '';
+          } else if (i === 4 || i === 5 || i === 6){
+            td.innerText = (c === '' || c === null) ? '' : fmtNumber(c);
+          } else {
+            td.innerText = c || '';
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
 
-  if(nome) filtrado = filtrado.filter(d => d.nome.toLowerCase().includes(nome));
-  if(proprietario) filtrado = filtrado.filter(d => d.proprietario.toLowerCase().includes(proprietario));
-  if(dataInicial) filtrado = filtrado.filter(d => new Date(d.data) >= new Date(dataInicial));
-  if(dataFinal) filtrado = filtrado.filter(d => new Date(d.data) <= new Date(dataFinal));
+    // Gerar PDF
+    document.getElementById('btnGerarPDF').addEventListener('click', function(){
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
+      const status = document.getElementById('filtroStatus').value || 'Todos';
 
-  renderTabela(filtrado);
-});
+      if (typeof google === 'undefined' || !google.script){
+        alert('Esta função só funciona quando o HTML é servido por Google Apps Script');
+        return;
+      }
 
-// Limpar filtros
-limparFiltrosBtn.addEventListener("click", () => {
-  document.getElementById("buscarNome").value = "";
-  document.getElementById("buscarProprietario").value = "";
-  document.getElementById("dataInicial").value = "";
-  document.getElementById("dataFinal").value = "";
-  renderTabela(todasDividas);
-});
+      document.getElementById('btnGerarPDF').disabled = true;
+      google.script.run.withSuccessHandler(function(url){
+        document.getElementById('btnGerarPDF').disabled = false;
+        if (url) window.open(url, '_blank');
+        else alert('Não foram encontrados dados para o filtro selecionado.');
+      }).gerarRelatorioPDF(inicio, fim, status);
+    });
 
-// Buscar pendentes
-buscarPendentesBtn.addEventListener("click", () => {
-  renderTabela(todasDividas.filter(d => d.status === "Pendente"));
-});
+    if (typeof google !== 'undefined' && google.script){
+      buscarDividas();
+    }
+  </script>
 
-// Gerar PDF
-gerarPDFBtn.addEventListener("click", () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const dataRelatorio = new Date().toLocaleDateString();
+  <!-- Backend Apps Script -->
+  <script type="text/plain" id="apps-script-backend">
+    function salvarDivida(nome, fornecedor, material, quantidade, preco, status) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Base de Dados");
+      var data = new Date();
+      var precoTotal = quantidade * preco;
+      sheet.appendRow([data, nome, fornecedor, material, quantidade, preco, precoTotal, status]);
+      return "Dívida adicionada com sucesso!";
+    }
 
-  doc.setFontSize(16);
-  doc.text("Relatório de Dívidas Filtrado", 14, 15);
-  doc.setFontSize(12);
-  doc.text(`Data: ${dataRelatorio}`, 14, 22);
+    function buscarDividas(dataInicio, dataFim, status) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Base de Dados");
+      var dados = sheet.getDataRange().getValues();
+      var resultado = [];
+      for (var i = 1; i < dados.length; i++) {
+        var linha = dados[i];
+        var data = new Date(linha[0]);
+        if ((status === "Todos" || status === linha[7]) &&
+            (!dataInicio || data >= new Date(dataInicio)) &&
+            (!dataFim || data <= new Date(dataFim))) {
+          resultado.push(linha);
+        }
+      }
+      return resultado;
+    }
 
-  const linhas = [];
-  let totalPendentes = 0;
-  let totalPagas = 0;
-
-  tabela.querySelectorAll("tr").forEach((tr, i) => {
-    if(i===0) return;
-    const cols = Array.from(tr.children).map(td => td.textContent);
-    linhas.push(cols);
-
-    const precoTotal = parseFloat(cols[6]) || 0;
-    if(cols[7] === "Pendente") totalPendentes += precoTotal;
-    else if(cols[7] === "Pago") totalPagas += precoTotal;
-  });
-
-  doc.autoTable({
-    head: [["Data","Nome","Proprietário","Material","Quantidade","Preço Unitário","Preço Total","Status"]],
-    body: linhas,
-    startY: 30,
-    theme: 'grid',
-    headStyles: { fillColor: [41, 128, 185] },
-    alternateRowStyles: { fillColor: [240, 240, 240] }
-  });
-
-  const finalY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(12);
-  doc.text(`Total Dívidas Pendentes: ${totalPendentes.toFixed(2)}`, 14, finalY);
-  doc.text(`Total Dívidas Pagas: ${totalPagas.toFixed(2)}`, 14, finalY + 8);
-
-  doc.save("Relatorio_Dividas_Filtrado.pdf");
-});
-
-// Carregar todas dívidas ao iniciar
-buscarDividas();
-</script>
+    function gerarRelatorioPDF(dataInicio, dataFim, status) {
+      var dados = buscarDividas(dataInicio, dataFim, status);
+      var doc = DocumentApp.create("Relatório de Dívidas");
+      var body = doc.getBody();
+      body.appendParagraph("Relatório de Dívidas");
+      body.appendParagraph("Período: " + dataInicio + " até " + dataFim + " | Status: " + status);
+      var tabela = [];
+      tabela.push(["Data","Nome","Fornecedor","Material","Quantidade","Preço Unitário","Preço Total","Status"]);
+      for (var i=0;i<dados.length;i++){tabela.push(dados[i]);}
+      body.appendTable(tabela);
+      var pdf = DriveApp.getFileById(doc.getId()).getAs("application/pdf");
+      var url = DriveApp.createFile(pdf).getUrl();
+      DriveApp.getFileById(doc.getId()).setTrashed(true);
+      return url;
+    }
+  </script>
 </body>
 </html>
