@@ -1,276 +1,289 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Controle de Dívidas</title>
+  <meta charset="UTF-8">
+  <title>Registro de Vendas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
-    :root{--green:#2e9b3a;--blue:#0080ff;--card:#fff;--bg:#f3f6f8}
-    html,body{height:100%;margin:0;font-family:Inter, Arial, Helvetica, sans-serif;background:var(--bg);color:#222}
-    .container{max-width:960px;margin:28px auto;padding:20px}
-    h1{text-align:center;font-size:34px;margin-bottom:18px}
-
-    .card{background:var(--card);border-radius:8px;padding:18px;box-shadow:0 6px 18px rgba(20,30,40,0.06)}
-    .form-row{display:flex;gap:12px;margin-bottom:10px}
-    .form-row .col{flex:1}
-    label{display:block;font-size:13px;margin-bottom:6px;color:#444}
-    input[type=text], input[type=number], input[type=date], select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
-    .btn{display:inline-block;padding:10px 14px;border-radius:6px;border:none;cursor:pointer}
-    .btn-green{background:var(--green);color:#fff}
-    .btn-secondary{background:#2b8cff;color:#fff}
-    .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
-
-    table{width:100%;border-collapse:collapse;margin-top:18px}
-    th,td{padding:10px;border:1px solid #e6eef8;text-align:left;font-size:14px}
-    thead th{background:var(--blue);color:#fff}
-
-    .actions{display:flex;gap:8px}
-    .small{font-size:13px;padding:8px 10px}
-
-    @media(max-width:720px){.form-row{flex-direction:column}}
+    body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 0; padding: 0;
+           display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+    .container { background: #fff; padding: 30px 40px; margin-top: 40px;
+                 border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                 width: 600px; text-align: center; }
+    h1, h2 { color: #333; margin-bottom: 20px; }
+    form { display: flex; flex-direction: column; gap: 15px; text-align: left; margin-bottom: 20px; }
+    label { font-weight: bold; color: #444; margin-bottom: 5px; display: block; }
+    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px;
+                    width: 100%; font-size: 14px; }
+    button { background: #007bff; color: white; padding: 12px; border: none;
+             border-radius: 6px; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+    button:hover { background: #0056b3; }
+    #msg { margin-top: 10px; font-weight: bold; color: red; }
+    .relatorio-section { text-align: left; margin-top: 30px; }
+    .relatorio-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .relatorio-row label { font-weight: bold; margin-right: 5px; }
+    .relatorio-row select, .relatorio-row input { flex: 1; min-width: 120px; }
+    .relatorio-row button { margin-top: 0; white-space: nowrap; }
+    .assinatura-wrapper { position: relative; }
+    #totalInfo { position: absolute; bottom: -22px; right: 5px; font-weight: bold;
+                 color: #007bff; font-size: 14px; }
+    #senhaRel { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Controlo de Dívidas</h1>
-
-    <div class="card">
-      <div class="form-row">
-        <div class="col">
-          <label for="nome">Nome do Beneficiário</label>
-          <input id="nome" type="text" placeholder="Nome do Beneficiário" />
-        </div>
-        <div class="col">
-          <label for="fornecedor">Fornecedor</label>
-          <input id="fornecedor" type="text" placeholder="Fornecedor" />
-        </div>
+    <h1>Registro de Vendas</h1>
+    <form id="form">
+      <div>
+        <label for="produtoSelect">Produto</label>
+        <select name="produto" id="produtoSelect" required></select>
       </div>
-
-      <div class="form-row">
-        <div class="col">
-          <label for="material">Material</label>
-          <input id="material" type="text" placeholder="Material" />
-        </div>
-        <div class="col">
-          <label for="quantidade">Quantidade</label>
-          <input id="quantidade" type="number" min="0" step="1" placeholder="Quantidade" />
-        </div>
+      <div>
+        <label for="quantidade">Quantidade</label>
+        <input type="number" name="quantidade" id="quantidade"
+               placeholder="Digite a quantidade" required>
       </div>
-
-      <div class="form-row">
-        <div class="col">
-          <label for="preco">Preço Unitário</label>
-          <input id="preco" type="number" min="0" step="0.01" placeholder="Preço Unitário" />
-        </div>
-        <div class="col">
-          <label for="status">Status</label>
-          <select id="status">
-            <option value="">Selecione o Status</option>
-            <option value="Pendente">Pendente</option>
-            <option value="Pago">Pago</option>
-          </select>
-        </div>
+      <div>
+        <label for="pvenda">Preço Venda</label>
+        <input type="number" step="0.01" name="pvenda" id="pvenda"
+               placeholder="Digite o preço de venda" required>
       </div>
+      <div class="assinatura-wrapper">
+        <label for="assinatura">Assinatura</label>
+        <input name="assinatura" id="assinatura" placeholder="Digite sua assinatura" required>
+        <span id="totalInfo"></span>
+      </div>
+      <button type="submit">Registrar Venda</button>
+    </form>
+    <p id="msg"></p>
 
-      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
-        <button class="btn btn-green" id="btnAdicionar">Adicionar Dívida</button>
-        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-          <div style="display:flex;gap:6px;align-items:center">
-            <label style="font-size:13px;color:#555">Total:</label>
-            <strong id="previewTotal">0.00</strong>
-          </div>
-        </div>
+    <div class="relatorio-section">
+      <h2>📊 Gerar Relatórios</h2>
+      <div class="relatorio-row">
+        <label for="tipoRel">Tipo:</label>
+        <select id="tipoRel">
+          <option value="vendas">Vendas</option>
+          <option value="entradas">Entradas</option>
+          <option value="saidas">Saídas</option>
+          <option value="stock">Stock</option>
+          <option value="dividas">Dívidas e Fornecimento</option>
+        </select>
+        <label for="dataInicio">De:</label>
+        <input type="date" id="dataInicio">
+        <label for="dataFim">Até:</label>
+        <input type="date" id="dataFim">
+        <input type="password" id="senhaRel" placeholder="Digite a senha">
+        <button id="gerarPDF">Gerar PDF</button>
       </div>
     </div>
-
-    <div style="display:flex;gap:12px;align-items:center;margin-top:16px">
-      <input type="date" id="dataInicio" />
-      <input type="date" id="dataFim" />
-      <select id="filtroStatus">
-        <option value="Todos">Todos</option>
-        <option value="Pendente">Pendente</option>
-        <option value="Pago">Pago</option>
-      </select>
-      <div class="actions" style="margin-left:auto">
-        <button class="btn btn-secondary small" id="btnBuscar">Buscar</button>
-        <button class="btn btn-green small" id="btnGerarPDF">Gerar PDF</button>
-      </div>
-    </div>
-
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Nome</th>
-          <th>Fornecedor</th>
-          <th>Material</th>
-          <th>Quantidade</th>
-          <th>Preço Unitário</th>
-          <th>Preço Total</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
 
-  <script>
-    // Helpers
-    function fmtNumber(v){
-      if (v === null || v === undefined || v === "") return '';
-      return parseFloat(v).toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2});
-    }
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbzZIUpNqFvyhKNbWckKmdOePidYC0ODCb4yZY39iPfxUtDUyv2Bwvu1ZIMyXru6TjdM-A/exec";
+const form = document.getElementById("form");
+const msg = document.getElementById("msg");
+const produtoSelect = document.getElementById("produtoSelect");
+const pvendaInput = document.getElementById("pvenda");
+const qtdInput = document.getElementById("quantidade");
+const totalInfo = document.getElementById("totalInfo");
+const tipoRel = document.getElementById("tipoRel");
+const senhaRel = document.getElementById("senhaRel");
+let produtosData = {};
 
-    function calcularTotalPreview(){
-      const q = parseFloat(document.getElementById('quantidade').value) || 0;
-      const p = parseFloat(document.getElementById('preco').value) || 0;
-      document.getElementById('previewTotal').innerText = fmtNumber(q * p);
-    }
+tipoRel.addEventListener("change", () => {
+  if (tipoRel.value === "entradas" || tipoRel.value === "stock" || tipoRel.value === "dividas") {
+    senhaRel.style.display = "block";
+  } else {
+    senhaRel.style.display = "none";
+    senhaRel.value = "";
+  }
+});
 
-    // Atualiza preview quando mudam quantidade/preço
-    document.getElementById('quantidade').addEventListener('input', calcularTotalPreview);
-    document.getElementById('preco').addEventListener('input', calcularTotalPreview);
-
-    // Adicionar dívida (chama backend do Google Apps Script)
-    document.getElementById('btnAdicionar').addEventListener('click', function(){
-      const nome = document.getElementById('nome').value.trim();
-      const fornecedor = document.getElementById('fornecedor').value.trim();
-      const material = document.getElementById('material').value.trim();
-      const quantidade = parseFloat(document.getElementById('quantidade').value) || 0;
-      const preco = parseFloat(document.getElementById('preco').value) || 0;
-      const status = document.getElementById('status').value;
-
-      if(!nome || !fornecedor || !material || !status){
-        alert('Por favor preencha todos os campos obrigatórios (Nome, Fornecedor, Material, Status).');
-        return;
-      }
-
-      if (typeof google === 'undefined' || !google.script){
-        alert('Este HTML deve ser servido via Google Apps Script (https://script.google.com/macros/s/AKfycbxwT6xGXU3dnvGmnL60_S6cQhMWQBB8TBi9X3O_ABDzy1kZBP8lqb9KBGvpj5FXPeTsEQ/exec). A função google.script.run não existe aqui.');
-        return;
-      }
-
-      document.getElementById('btnAdicionar').disabled = true;
-      google.script.run.withSuccessHandler(function(res){
-        alert(res || 'Dívida adicionada.');
-        document.getElementById('nome').value = '';
-        document.getElementById('fornecedor').value = '';
-        document.getElementById('material').value = '';
-        document.getElementById('quantidade').value = '';
-        document.getElementById('preco').value = '';
-        document.getElementById('status').value = '';
-        calcularTotalPreview();
-        document.getElementById('btnAdicionar').disabled = false;
-        buscarDividas();
-      }).salvarDivida(nome, fornecedor, material, quantidade, preco, status);
-    });
-
-    // Buscar dívidas com filtros
-    document.getElementById('btnBuscar').addEventListener('click', buscarDividas);
-
-    function buscarDividas(){
-      const inicio = document.getElementById('dataInicio').value;
-      const fim = document.getElementById('dataFim').value;
-      const status = document.getElementById('filtroStatus').value || 'Todos';
-
-      if (typeof google === 'undefined' || !google.script){
-        console.warn('google.script.run não disponível (teste local).');
-        return;
-      }
-
-      google.script.run.withSuccessHandler(preencherTabela).buscarDividas(inicio, fim, status);
-    }
-
-    function preencherTabela(dados){
-      const tbody = document.querySelector('#tabela tbody');
-      tbody.innerHTML = '';
-      if (!dados || !dados.length) return;
-
-      dados.forEach(function(linha){
-        const tr = document.createElement('tr');
-        const cells = [linha[0], linha[1], linha[2], linha[3], linha[4], linha[5], linha[6], linha[7]];
-        cells.forEach(function(c, i){
-          const td = document.createElement('td');
-          if (i === 0){
-            let d = c;
-            if (typeof c === 'object' && c !== null && c.toISOString) d = new Date(c).toLocaleString();
-            td.innerText = d || '';
-          } else if (i === 4 || i === 5 || i === 6){
-            td.innerText = (c === '' || c === null) ? '' : fmtNumber(c);
-          } else {
-            td.innerText = c || '';
+async function carregarProdutos() {
+  try {
+    const res = await fetch(`${scriptURL}?action=getProdutos`);
+    const lista = await res.json();
+    produtoSelect.innerHTML = "<option value='' disabled selected>Selecione...</option>";
+    produtosData = {};
+    if (Array.isArray(lista)) {
+      lista.forEach(item => {
+        if (typeof item === "string") {
+          let nome = item.trim(), preco = null;
+          if (item.includes("|")) {
+            const [n, p] = item.split("|").map(s => s.trim());
+            nome = n; preco = parseFloat(p.replace(",", "."));
           }
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
+          const opt = document.createElement("option");
+          opt.value = nome; opt.textContent = nome;
+          if (!isNaN(preco)) { opt.dataset.preco = preco; produtosData[nome] = preco; }
+          produtoSelect.appendChild(opt);
+        }
       });
     }
+  } catch (e) { console.error("Erro ao carregar produtos", e); }
+}
+carregarProdutos();
 
-    // Gerar PDF
-    document.getElementById('btnGerarPDF').addEventListener('click', function(){
-      const inicio = document.getElementById('dataInicio').value;
-      const fim = document.getElementById('dataFim').value;
-      const status = document.getElementById('filtroStatus').value || 'Todos';
+function atualizarTotal() {
+  const qtd = Number(qtdInput.value) || 0;
+  const preco = Number(pvendaInput.value) || 0;
+  totalInfo.textContent = (qtd > 0 && preco > 0)
+    ? "Total: " + (qtd * preco).toFixed(2) + " MT" : "";
+}
+produtoSelect.addEventListener("change", () => {
+  const opt = produtoSelect.selectedOptions[0];
+  const preco = opt?.dataset?.preco ? parseFloat(opt.dataset.preco) : "";
+  pvendaInput.value = preco ? preco.toFixed(2) : "";
+  atualizarTotal();
+});
+qtdInput.addEventListener("input", atualizarTotal);
+pvendaInput.addEventListener("input", atualizarTotal);
 
-      if (typeof google === 'undefined' || !google.script){
-        alert('Esta função só funciona quando o HTML é servido por Google Apps Script');
-        return;
-      }
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form));
+  const assinaturasValidas = ["venda1","venda2","venda3","venda4","venda5"];
+  if (!assinaturasValidas.includes(data.assinatura.trim().toLowerCase())) {
+    msg.innerText = "❌ Assinatura inválida!";
+    return;
+  }
+  data.tipo = "venda";
+  data.total = (Number(data.quantidade) * Number(data.pvenda)).toFixed(2);
+  data.multiAction = "registrarVendaCompleta";
 
-      document.getElementById('btnGerarPDF').disabled = true;
-      google.script.run.withSuccessHandler(function(url){
-        document.getElementById('btnGerarPDF').disabled = false;
-        if (url) window.open(url, '_blank');
-        else alert('Não foram encontrados dados para o filtro selecionado.');
-      }).gerarRelatorioPDF(inicio, fim, status);
+  fetch(scriptURL, { method: "POST", body: JSON.stringify(data) })
+    .then(r => r.json())
+    .then(() => {
+      msg.innerText = "✅ Venda registrada e stock atualizado!";
+      form.reset();
+      totalInfo.textContent = "";
+      carregarProdutos();
+    })
+    .catch(() => { msg.innerText = "❌ Erro ao registrar venda"; });
+});
+
+async function gerarPDF(tipo, inicio, fim) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape" });
+  let head = [], body = [], totalQtd = 0, totalVal = 0;
+
+  function formatarData(dt) {
+    return new Date(dt).toLocaleString('pt-PT',{
+      day:'2-digit',month:'short',year:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  }
+  async function fetchPadrao(sheetName){
+    const res = await fetch(`${scriptURL}?action=gerarRelatorio&tipo=${sheetName}`);
+    const text = await res.text();
+    return text.split("\n")
+               .filter(l => l.includes("|"))
+               .map(l => l.split("|").map(c => c.trim()));
+  }
+
+  if (["vendas","entradas","saidas"].includes(tipo)) {
+    const dados = await fetchPadrao(tipo);
+    if (tipo === "vendas") {
+      head = [["Data","Produto","Qtde","Preço (MT)","Total (MT)","Assinatura"]];
+      body = dados.filter(r => {
+        const d = new Date(r[0]);
+        return (!inicio || d >= new Date(inicio)) &&
+               (!fim || d <= new Date(fim));
+      }).map(r => { r[0] = formatarData(r[0]); return r; });
+      body.forEach(r => { totalQtd += Number(r[2]); totalVal += Number(r[4]); });
+    }
+    if (tipo === "entradas") {
+      head = [["Data","Produto","Qtde","P.Compra","Assinatura"]];
+      body = dados.map(r => { r[0] = formatarData(r[0]); return r; });
+    }
+    if (tipo === "saidas") {
+      head = [["Data","Produto","Qtde","P.Venda","Assinatura"]];
+      body = dados.map(r => { r[0] = formatarData(r[0]); return r; });
+    }
+  }
+
+  if (tipo === "stock") {
+    const dados = await fetchPadrao("produtos");
+    head = [["Produto","Quantidade Existente","Preço de Compra","Preço de Venda","Assinatura","Data Cadastro"]];
+    body = dados.map(r => [
+      r[0], r[1], r[2], r[3] || "", r[4] || "",
+      r[5] ? formatarData(r[5]) : ""
+    ]);
+  }
+
+  // ======== DÍVIDAS E FORNECIMENTOS (com linha TOTAL GERAL ajustada) ========
+  if (tipo === "dividas") {
+    const dados = await fetchPadrao("fornecimentos");
+    head = [["Data","Fornecedor","Beneficiário","Produto","Quantidade",
+             "Preço Unitário","Preço Total","Status"]];
+    body = dados.map(r => {
+      totalQtd += Number(r[4]) || 0;
+      totalVal += Number(r[6]) || 0;
+      return [
+        formatarData(r[0]), r[1], r[2], r[3], r[4], r[5], r[6], r[7]
+      ];
     });
+  }
 
-    if (typeof google !== 'undefined' && google.script){
-      buscarDividas();
-    }
-  </script>
+  doc.text(`Relatório de ${tipo.toUpperCase()} - Papelaria Muipeliua`,
+           148, 15, { align: "center" });
+  doc.autoTable({ head, body, startY: 30, styles: { halign: "center" } });
 
-  <!-- Backend Apps Script -->
-  <script type="text/plain" id="apps-script-backend">
-    function salvarDivida(nome, fornecedor, material, quantidade, preco, status) {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Base de Dados");
-      var data = new Date();
-      var precoTotal = quantidade * preco;
-      sheet.appendRow([data, nome, fornecedor, material, quantidade, preco, precoTotal, status]);
-      return "Dívida adicionada com sucesso!";
-    }
+  // Totais para VENDAS
+  if (tipo === "vendas") {
+    doc.autoTable({
+      body: [[
+        { content: "TOTAL QTDE",
+          styles: { fillColor:[0,123,255], textColor:255, fontStyle:"bold" } },
+        { content: totalQtd.toString(),
+          styles: { fillColor:[0,123,255], textColor:255 } },
+        { content: "TOTAL VALOR (MT)",
+          styles: { fillColor:[0,123,255], textColor:255, fontStyle:"bold" } },
+        { content: totalVal.toFixed(2)+" MT",
+          styles: { fillColor:[0,123,255], textColor:255 } }
+      ]],
+      theme: "plain",
+      startY: doc.lastAutoTable.finalY + 5
+    });
+  }
 
-    function buscarDividas(dataInicio, dataFim, status) {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Base de Dados");
-      var dados = sheet.getDataRange().getValues();
-      var resultado = [];
-      for (var i = 1; i < dados.length; i++) {
-        var linha = dados[i];
-        var data = new Date(linha[0]);
-        if ((status === "Todos" || status === linha[7]) &&
-            (!dataInicio || data >= new Date(dataInicio)) &&
-            (!dataFim || data <= new Date(dataFim))) {
-          resultado.push(linha);
+  // ✅ Linha TOTAL GERAL para DÍVIDAS (formatação igual ao cabeçalho)
+  if (tipo === "dividas") {
+    doc.autoTable({
+      body: [[
+        { content: `TOTAL GERAL → Quantidade: ${totalQtd} | Valor Total: ${totalVal.toFixed(2)} MT`,
+          colSpan: head[0].length,
+          styles: {
+            fillColor: [0,123,255],
+            textColor: 255,
+            halign: "center",
+            fontStyle: "bold"
+          }
         }
-      }
-      return resultado;
-    }
+      ]],
+      theme: "plain",
+      startY: doc.lastAutoTable.finalY + 5
+    });
+  }
 
-    function gerarRelatorioPDF(dataInicio, dataFim, status) {
-      var dados = buscarDividas(dataInicio, dataFim, status);
-      var doc = DocumentApp.create("Relatório de Dívidas");
-      var body = doc.getBody();
-      body.appendParagraph("Relatório de Dívidas");
-      body.appendParagraph("Período: " + dataInicio + " até " + dataFim + " | Status: " + status);
-      var tabela = [];
-      tabela.push(["Data","Nome","Fornecedor","Material","Quantidade","Preço Unitário","Preço Total","Status"]);
-      for (var i=0;i<dados.length;i++){tabela.push(dados[i]);}
-      body.appendTable(tabela);
-      var pdf = DriveApp.getFileById(doc.getId()).getAs("application/pdf");
-      var url = DriveApp.createFile(pdf).getUrl();
-      DriveApp.getFileById(doc.getId()).setTrashed(true);
-      return url;
-    }
-  </script>
+  doc.save(`Relatorio_${tipo}.pdf`);
+}
+
+document.getElementById("gerarPDF").addEventListener("click", () => {
+  const inicio = document.getElementById("dataInicio").value;
+  const fim = document.getElementById("dataFim").value;
+  const tipo = tipoRel.value;
+  const senha = senhaRel.value;
+
+  const relatoriosProtegidos = ["entradas", "stock", "dividas"];
+
+  if (relatoriosProtegidos.includes(tipo) && senha !== "muipeliua2025") {
+    alert("❌ Senha inválida. Acesso negado!");
+    return;
+  }
+
+  gerarPDF(tipo, inicio, fim);
+});
+</script>
 </body>
 </html>
