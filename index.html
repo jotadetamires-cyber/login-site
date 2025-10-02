@@ -1,51 +1,109 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="pt">
 <head>
-  <meta charset="utf-8">
-  <title>Pagamento Cotas (e-Mola) - Demo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANAZA - Associação dos Naturais Amigos da Zambézia</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      color: #333;
+    }
+    header {
+      background: #008000;
+      color: white;
+      padding: 20px 10px;
+      text-align: center;
+    }
+    header img {
+      max-height: 90px;
+      display: block;
+      margin: 0 auto 10px auto;
+    }
+    nav {
+      background: #006400;
+      padding: 12px;
+      text-align: center;
+    }
+    nav a {
+      color: white;
+      margin: 0 18px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    section {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+    footer {
+      text-align: center;
+      background: #008000;
+      color: white;
+      padding: 15px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Pagamento de Cotas via e-Mola (demo)</h2>
-  <form id="payForm">
-    Telefone (84xxxxxxx): <input id="phone" name="phone" required /><br/>
-    Valor (MZN): <input id="amount" name="amount" type="number" step="0.01" required /><br/>
-    <button type="submit">Pagar</button>
-  </form>
+  <header>
+    <img src="bicicleta-coqueiro.png" alt="Símbolo da ANAZA">
+    <h1>ANAZA</h1>
+    <h2>Associação dos Naturais Amigos da Zambézia</h2>
+    <p>Unidos pela tradição, cultura e desenvolvimento da Zambézia</p>
+  </header>
 
-  <div id="result"></div>
+  <nav>
+    <a href="#sobre">Sobre Nós</a>
+    <a href="#objectivos">Objectivos</a>
+    <a href="#projectos">Projetos</a>
+    <a href="#contactos">Contactos</a>
+  </nav>
 
-  <script>
-    const form = document.getElementById('payForm');
-    const resEl = document.getElementById('result');
+  <section id="sobre">
+    <h2>Sobre Nós</h2>
+    <p>A <b>ANAZA</b> é uma associação cultural e social criada pelos naturais e amigos da província da Zambézia. O nosso compromisso é preservar a identidade, fortalecer os laços de amizade e contribuir para o progresso social, económico e cultural da região.</p>
+  </section>
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phone = document.getElementById('phone').value;
-      const amount = document.getElementById('amount').value;
-      resEl.innerText = 'Solicitando pagamento...';
+  <section id="objectivos">
+    <h2>Objectivos</h2>
+    <ul>
+      <li>Promover a unidade e solidariedade entre os naturais da Zambézia;</li>
+      <li>Valorizar a cultura, tradições e história da província;</li>
+      <li>Impulsionar ações sociais em benefício das comunidades locais;</li>
+      <li>Fomentar o desporto, turismo e empreendedorismo comunitário.</li>
+    </ul>
+  </section>
 
-      const r = await fetch('/create-payment', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ phone, amount, description: 'Cotas Jemx School' })
-      });
-      const data = await r.json();
-      if (data.merchantTxId) {
-        resEl.innerHTML = 'Pedido enviado. Aguardando confirmação...<br/>ID: ' + data.merchantTxId;
-        // Poll (simples) a cada 3s até confirmar (em produção prefira websockets ou esperar webhook)
-        const id = data.merchantTxId;
-        const interval = setInterval( async () => {
-          const s = await fetch(`/payment-status/${id}`);
-          const js = await s.json();
-          resEl.innerHTML = 'Status: ' + js.status + '<br/>' + JSON.stringify(js.providerResponse || js.providerWebhook || {}, null, 2);
-          if (js.status === 'CONFIRMED' || js.status === 'FAILED') {
-            clearInterval(interval);
-          }
-        }, 3000);
-      } else {
-        resEl.innerText = 'Erro: ' + (data.error || JSON.stringify(data));
-      }
-    });
-  </script>
+  <section id="projectos">
+    <h2>Projetos em Destaque</h2>
+    <ul>
+      <li><b>Cultura em Movimento:</b> promoção de eventos culturais e artísticos.</li>
+      <li><b>Juventude Ativa:</b> incentivo ao desporto e ao voluntariado juvenil.</li>
+      <li><b>Ambiente Sustentável:</b> programas de reflorestamento e proteção costeira.</li>
+      <li><b>Solidariedade:</b> apoio a famílias e estudantes em situação de vulnerabilidade.</li>
+    </ul>
+  </section>
+
+  <section id="contactos">
+    <h2>Contactos</h2>
+    <p>Email: <a href="mailto:anaza.zambezia@gmail.com">anaza.zambezia@gmail.com</a></p>
+    <p>Telefone: +258 84 000 0000</p>
+    <p>Endereço: Quelimane - Província da Zambézia, Moçambique</p>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 ANAZA - Associação dos Naturais Amigos da Zambézia</p>
+    <p>"Unidos pela nossa terra, tradição e amizade"</p>
+  </footer>
 </body>
 </html>
