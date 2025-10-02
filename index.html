@@ -1,289 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Registro de Vendas</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 0; padding: 0;
-           display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
-    .container { background: #fff; padding: 30px 40px; margin-top: 40px;
-                 border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                 width: 600px; text-align: center; }
-    h1, h2 { color: #333; margin-bottom: 20px; }
-    form { display: flex; flex-direction: column; gap: 15px; text-align: left; margin-bottom: 20px; }
-    label { font-weight: bold; color: #444; margin-bottom: 5px; display: block; }
-    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px;
-                    width: 100%; font-size: 14px; }
-    button { background: #007bff; color: white; padding: 12px; border: none;
-             border-radius: 6px; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-    button:hover { background: #0056b3; }
-    #msg { margin-top: 10px; font-weight: bold; color: red; }
-    .relatorio-section { text-align: left; margin-top: 30px; }
-    .relatorio-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .relatorio-row label { font-weight: bold; margin-right: 5px; }
-    .relatorio-row select, .relatorio-row input { flex: 1; min-width: 120px; }
-    .relatorio-row button { margin-top: 0; white-space: nowrap; }
-    .assinatura-wrapper { position: relative; }
-    #totalInfo { position: absolute; bottom: -22px; right: 5px; font-weight: bold;
-                 color: #007bff; font-size: 14px; }
-    #senhaRel { display: none; }
-  </style>
+  <meta charset="utf-8">
+  <title>Pagamento Cotas (e-Mola) - Demo</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Registro de Vendas</h1>
-    <form id="form">
-      <div>
-        <label for="produtoSelect">Produto</label>
-        <select name="produto" id="produtoSelect" required></select>
-      </div>
-      <div>
-        <label for="quantidade">Quantidade</label>
-        <input type="number" name="quantidade" id="quantidade"
-               placeholder="Digite a quantidade" required>
-      </div>
-      <div>
-        <label for="pvenda">Preço Venda</label>
-        <input type="number" step="0.01" name="pvenda" id="pvenda"
-               placeholder="Digite o preço de venda" required>
-      </div>
-      <div class="assinatura-wrapper">
-        <label for="assinatura">Assinatura</label>
-        <input name="assinatura" id="assinatura" placeholder="Digite sua assinatura" required>
-        <span id="totalInfo"></span>
-      </div>
-      <button type="submit">Registrar Venda</button>
-    </form>
-    <p id="msg"></p>
+  <h2>Pagamento de Cotas via e-Mola (demo)</h2>
+  <form id="payForm">
+    Telefone (84xxxxxxx): <input id="phone" name="phone" required /><br/>
+    Valor (MZN): <input id="amount" name="amount" type="number" step="0.01" required /><br/>
+    <button type="submit">Pagar</button>
+  </form>
 
-    <div class="relatorio-section">
-      <h2>📊 Gerar Relatórios</h2>
-      <div class="relatorio-row">
-        <label for="tipoRel">Tipo:</label>
-        <select id="tipoRel">
-          <option value="vendas">Vendas</option>
-          <option value="entradas">Entradas</option>
-          <option value="saidas">Saídas</option>
-          <option value="stock">Stock</option>
-          <option value="dividas">Dívidas e Fornecimento</option>
-        </select>
-        <label for="dataInicio">De:</label>
-        <input type="date" id="dataInicio">
-        <label for="dataFim">Até:</label>
-        <input type="date" id="dataFim">
-        <input type="password" id="senhaRel" placeholder="Digite a senha">
-        <button id="gerarPDF">Gerar PDF</button>
-      </div>
-    </div>
-  </div>
+  <div id="result"></div>
 
-<script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbzZIUpNqFvyhKNbWckKmdOePidYC0ODCb4yZY39iPfxUtDUyv2Bwvu1ZIMyXru6TjdM-A/exec";
-const form = document.getElementById("form");
-const msg = document.getElementById("msg");
-const produtoSelect = document.getElementById("produtoSelect");
-const pvendaInput = document.getElementById("pvenda");
-const qtdInput = document.getElementById("quantidade");
-const totalInfo = document.getElementById("totalInfo");
-const tipoRel = document.getElementById("tipoRel");
-const senhaRel = document.getElementById("senhaRel");
-let produtosData = {};
+  <script>
+    const form = document.getElementById('payForm');
+    const resEl = document.getElementById('result');
 
-tipoRel.addEventListener("change", () => {
-  if (tipoRel.value === "entradas" || tipoRel.value === "stock" || tipoRel.value === "dividas") {
-    senhaRel.style.display = "block";
-  } else {
-    senhaRel.style.display = "none";
-    senhaRel.value = "";
-  }
-});
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value;
+      const amount = document.getElementById('amount').value;
+      resEl.innerText = 'Solicitando pagamento...';
 
-async function carregarProdutos() {
-  try {
-    const res = await fetch(`${scriptURL}?action=getProdutos`);
-    const lista = await res.json();
-    produtoSelect.innerHTML = "<option value='' disabled selected>Selecione...</option>";
-    produtosData = {};
-    if (Array.isArray(lista)) {
-      lista.forEach(item => {
-        if (typeof item === "string") {
-          let nome = item.trim(), preco = null;
-          if (item.includes("|")) {
-            const [n, p] = item.split("|").map(s => s.trim());
-            nome = n; preco = parseFloat(p.replace(",", "."));
-          }
-          const opt = document.createElement("option");
-          opt.value = nome; opt.textContent = nome;
-          if (!isNaN(preco)) { opt.dataset.preco = preco; produtosData[nome] = preco; }
-          produtoSelect.appendChild(opt);
-        }
+      const r = await fetch('/create-payment', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ phone, amount, description: 'Cotas Jemx School' })
       });
-    }
-  } catch (e) { console.error("Erro ao carregar produtos", e); }
-}
-carregarProdutos();
-
-function atualizarTotal() {
-  const qtd = Number(qtdInput.value) || 0;
-  const preco = Number(pvendaInput.value) || 0;
-  totalInfo.textContent = (qtd > 0 && preco > 0)
-    ? "Total: " + (qtd * preco).toFixed(2) + " MT" : "";
-}
-produtoSelect.addEventListener("change", () => {
-  const opt = produtoSelect.selectedOptions[0];
-  const preco = opt?.dataset?.preco ? parseFloat(opt.dataset.preco) : "";
-  pvendaInput.value = preco ? preco.toFixed(2) : "";
-  atualizarTotal();
-});
-qtdInput.addEventListener("input", atualizarTotal);
-pvendaInput.addEventListener("input", atualizarTotal);
-
-form.addEventListener("submit", e => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(form));
-  const assinaturasValidas = ["venda1","venda2","venda3","venda4","venda5"];
-  if (!assinaturasValidas.includes(data.assinatura.trim().toLowerCase())) {
-    msg.innerText = "❌ Assinatura inválida!";
-    return;
-  }
-  data.tipo = "venda";
-  data.total = (Number(data.quantidade) * Number(data.pvenda)).toFixed(2);
-  data.multiAction = "registrarVendaCompleta";
-
-  fetch(scriptURL, { method: "POST", body: JSON.stringify(data) })
-    .then(r => r.json())
-    .then(() => {
-      msg.innerText = "✅ Venda registrada e stock atualizado!";
-      form.reset();
-      totalInfo.textContent = "";
-      carregarProdutos();
-    })
-    .catch(() => { msg.innerText = "❌ Erro ao registrar venda"; });
-});
-
-async function gerarPDF(tipo, inicio, fim) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: "landscape" });
-  let head = [], body = [], totalQtd = 0, totalVal = 0;
-
-  function formatarData(dt) {
-    return new Date(dt).toLocaleString('pt-PT',{
-      day:'2-digit',month:'short',year:'numeric',
-      hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-  }
-  async function fetchPadrao(sheetName){
-    const res = await fetch(`${scriptURL}?action=gerarRelatorio&tipo=${sheetName}`);
-    const text = await res.text();
-    return text.split("\n")
-               .filter(l => l.includes("|"))
-               .map(l => l.split("|").map(c => c.trim()));
-  }
-
-  if (["vendas","entradas","saidas"].includes(tipo)) {
-    const dados = await fetchPadrao(tipo);
-    if (tipo === "vendas") {
-      head = [["Data","Produto","Qtde","Preço (MT)","Total (MT)","Assinatura"]];
-      body = dados.filter(r => {
-        const d = new Date(r[0]);
-        return (!inicio || d >= new Date(inicio)) &&
-               (!fim || d <= new Date(fim));
-      }).map(r => { r[0] = formatarData(r[0]); return r; });
-      body.forEach(r => { totalQtd += Number(r[2]); totalVal += Number(r[4]); });
-    }
-    if (tipo === "entradas") {
-      head = [["Data","Produto","Qtde","P.Compra","Assinatura"]];
-      body = dados.map(r => { r[0] = formatarData(r[0]); return r; });
-    }
-    if (tipo === "saidas") {
-      head = [["Data","Produto","Qtde","P.Venda","Assinatura"]];
-      body = dados.map(r => { r[0] = formatarData(r[0]); return r; });
-    }
-  }
-
-  if (tipo === "stock") {
-    const dados = await fetchPadrao("produtos");
-    head = [["Produto","Quantidade Existente","Preço de Compra","Preço de Venda","Assinatura","Data Cadastro"]];
-    body = dados.map(r => [
-      r[0], r[1], r[2], r[3] || "", r[4] || "",
-      r[5] ? formatarData(r[5]) : ""
-    ]);
-  }
-
-  // ======== DÍVIDAS E FORNECIMENTOS (com linha TOTAL GERAL ajustada) ========
-  if (tipo === "dividas") {
-    const dados = await fetchPadrao("fornecimentos");
-    head = [["Data","Fornecedor","Beneficiário","Produto","Quantidade",
-             "Preço Unitário","Preço Total","Status"]];
-    body = dados.map(r => {
-      totalQtd += Number(r[4]) || 0;
-      totalVal += Number(r[6]) || 0;
-      return [
-        formatarData(r[0]), r[1], r[2], r[3], r[4], r[5], r[6], r[7]
-      ];
-    });
-  }
-
-  doc.text(`Relatório de ${tipo.toUpperCase()} - Papelaria Muipeliua`,
-           148, 15, { align: "center" });
-  doc.autoTable({ head, body, startY: 30, styles: { halign: "center" } });
-
-  // Totais para VENDAS
-  if (tipo === "vendas") {
-    doc.autoTable({
-      body: [[
-        { content: "TOTAL QTDE",
-          styles: { fillColor:[0,123,255], textColor:255, fontStyle:"bold" } },
-        { content: totalQtd.toString(),
-          styles: { fillColor:[0,123,255], textColor:255 } },
-        { content: "TOTAL VALOR (MT)",
-          styles: { fillColor:[0,123,255], textColor:255, fontStyle:"bold" } },
-        { content: totalVal.toFixed(2)+" MT",
-          styles: { fillColor:[0,123,255], textColor:255 } }
-      ]],
-      theme: "plain",
-      startY: doc.lastAutoTable.finalY + 5
-    });
-  }
-
-  // ✅ Linha TOTAL GERAL para DÍVIDAS (formatação igual ao cabeçalho)
-  if (tipo === "dividas") {
-    doc.autoTable({
-      body: [[
-        { content: `TOTAL GERAL → Quantidade: ${totalQtd} | Valor Total: ${totalVal.toFixed(2)} MT`,
-          colSpan: head[0].length,
-          styles: {
-            fillColor: [0,123,255],
-            textColor: 255,
-            halign: "center",
-            fontStyle: "bold"
+      const data = await r.json();
+      if (data.merchantTxId) {
+        resEl.innerHTML = 'Pedido enviado. Aguardando confirmação...<br/>ID: ' + data.merchantTxId;
+        // Poll (simples) a cada 3s até confirmar (em produção prefira websockets ou esperar webhook)
+        const id = data.merchantTxId;
+        const interval = setInterval( async () => {
+          const s = await fetch(`/payment-status/${id}`);
+          const js = await s.json();
+          resEl.innerHTML = 'Status: ' + js.status + '<br/>' + JSON.stringify(js.providerResponse || js.providerWebhook || {}, null, 2);
+          if (js.status === 'CONFIRMED' || js.status === 'FAILED') {
+            clearInterval(interval);
           }
-        }
-      ]],
-      theme: "plain",
-      startY: doc.lastAutoTable.finalY + 5
+        }, 3000);
+      } else {
+        resEl.innerText = 'Erro: ' + (data.error || JSON.stringify(data));
+      }
     });
-  }
-
-  doc.save(`Relatorio_${tipo}.pdf`);
-}
-
-document.getElementById("gerarPDF").addEventListener("click", () => {
-  const inicio = document.getElementById("dataInicio").value;
-  const fim = document.getElementById("dataFim").value;
-  const tipo = tipoRel.value;
-  const senha = senhaRel.value;
-
-  const relatoriosProtegidos = ["entradas", "stock", "dividas"];
-
-  if (relatoriosProtegidos.includes(tipo) && senha !== "muipeliua2025") {
-    alert("❌ Senha inválida. Acesso negado!");
-    return;
-  }
-
-  gerarPDF(tipo, inicio, fim);
-});
-</script>
+  </script>
 </body>
 </html>
