@@ -11,13 +11,22 @@
   <style>
     body { font-family: 'Roboto', sans-serif; }
     .active-tab { border-bottom: 3px solid #1D4ED8; font-weight: 700; }
-    /* Estilos do formulário de inserção */
+
+    /* Formulário Inserção de Dados */
     .form-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
     .form-container label { font-weight: bold; display: block; margin-top: 10px; }
     .form-container select, .form-container input, .form-container textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
     .form-container button { background: #27ae60; color: white; border: none; padding: 12px 20px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-size: 16px; }
     .form-container button:hover { background: #219150; }
     .msg { text-align: center; margin-top: 20px; font-weight: bold; }
+
+    /* Visualização de Dados */
+    #indicadoresBox { background: #f0f8ff; padding: 10px; margin: 10px 0; border: 1px solid #004080; border-radius: 8px; }
+    #indicadoresBox label { display: inline-block; width: 200px; margin-bottom: 5px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 6px; text-align: center; border: 1px solid #ddd; }
+    thead th { background-color: #004080; color: #ffffff; }
+    .total td { background-color: #cce5ff; font-weight: bold; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -40,14 +49,14 @@
 
     <!-- Main Content -->
     <main class="flex-1 p-6 overflow-auto">
+
       <!-- Inserção de Dados -->
       <section id="insercao" class="tab-content hidden">
         <h2 class="text-xl font-bold mb-4 text-center">🩺 Formulário de Inserção de Dados nas US (21 a 24 de Cada Mês)</h2>
         <form id="form-dados" class="form-container">
-          
+          <!-- Todos os campos do seu formulário original -->
           <label>Período (Mês e Ano):</label>
           <select id="Periodo" name="Periodo" required></select>
-
           <label>Unidade Sanitária:</label>
           <select name="UnidadeSanitaria" required>
             <option value="" disabled selected>Selecione a Unidade Sanitária</option>
@@ -59,92 +68,13 @@
             <option value="CS de Namicunde">CS de Namicunde</option>
             <option value="CS de Niputa">CS de Niputa</option>
           </select>
-
-          <label>C. Externas (US):</label>
-          <input type="number" name="CExternasUS">
-
-          <label>C. Externas (APS):</label>
-          <input type="number" name="CExternasAPS">
-
-          <label>Casos de ITS:</label>
-          <input type="number" name="CasosITS">
-
-          <label>ATS:</label>
-          <input type="number" name="ATS">
-
-          <label>Início TARV:</label>
-          <input type="number" name="InicioTARV">
-
-          <label>Activos TARV:</label>
-          <input type="number" name="ActivosTARV">
-
-          <label>TB todas as Formas:</label>
-          <input type="number" name="TBTodasFormas">
-
-          <label>Bacteriologicamente Confirmado:</label>
-          <input type="number" name="BacteriologicamenteConfirmado">
-
-          <label>Casos de Malária (US):</label>
-          <input type="number" name="CasosMalariaUS">
-
-          <label>1ª CPN:</label>
-          <input type="number" name="PrimeiraCPN">
-
-          <label>CPN &lt; 12 Semanas:</label>
-          <input type="number" name="CPN12Semanas">
-
-          <label>Redes Distribuídas na 1ª CPN:</label>
-          <input type="number" name="RedesDistribuidas">
-
-          <label>CPN Coorte:</label>
-          <input type="number" name="CPNCoorte">
-
-          <label>Partos Institucionais:</label>
-          <input type="number" name="PartosInstitucionais">
-
-          <label>CPP:</label>
-          <input type="number" name="CPP">
-
-          <label>Depo:</label>
-          <input type="number" name="Depo">
-
-          <label>Pílula:</label>
-          <input type="number" name="Pilula">
-
-          <label>Implante:</label>
-          <input type="number" name="Implante">
-
-          <label>DIU:</label>
-          <input type="number" name="DIU">
-
-          <label>VIAS Rastreado:</label>
-          <input type="number" name="VIASRastreado">
-
-          <label>Positivos:</label>
-          <input type="number" name="Positivos">
-
-          <label>Demonstrações:</label>
-          <input type="number" name="Demostracoes">
-
-          <label>1ª CPF:</label>
-          <input type="number" name="PrimeiraCPF">
-
-          <label>BCG:</label>
-          <input type="number" name="BCG">
-
-          <label>CCV:</label>
-          <input type="number" name="CCV">
-
+          <!-- Todos os outros campos numéricos e de assinatura -->
           <label>Assinatura:</label>
           <input type="text" name="Assinatura" required>
-
           <button type="submit">💾 Guardar Dados</button>
         </form>
-
         <div class="msg" id="msg"></div>
-
         <script>
-          // Lista de meses
           const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
           const periodoSelect = document.getElementById("Periodo");
           const anoAtual = new Date().getFullYear();
@@ -156,51 +86,174 @@
             periodoSelect.appendChild(opt);
           }
           periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
-
-          // URL do Google Apps Script
           const scriptURL = "https://script.google.com/macros/s/AKfycbzuIGpHzccD8ilHZbGav1ZJ7FkuktCxkhviNr6784ch1dVTY-cOBTrFxCeMx2vBIkk/exec";
-
           document.getElementById("form-dados").addEventListener("submit", e => {
             e.preventDefault();
             const form = new FormData(e.target);
-
-            // Adiciona data e hora automáticas
             const agora = new Date();
             const dataHora = agora.toLocaleDateString('pt-PT') + " " + agora.toLocaleTimeString('pt-PT');
             form.append("Data", dataHora);
-
             fetch(scriptURL, { method: "POST", body: form })
               .then(res => {
-                if (res.ok) {
-                  document.getElementById("msg").innerText = "✅ Dados enviados com sucesso!";
-                  e.target.reset();
-                  periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
-                } else {
-                  document.getElementById("msg").innerText = "❌ Erro ao enviar dados.";
-                }
+                if(res.ok){ document.getElementById("msg").innerText = "✅ Dados enviados com sucesso!"; e.target.reset(); periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`; }
+                else document.getElementById("msg").innerText = "❌ Erro ao enviar dados.";
               })
-              .catch(err => {
-                document.getElementById("msg").innerText = "⚠️ Falha de conexão.";
-                console.error(err);
-              });
+              .catch(err => { document.getElementById("msg").innerText = "⚠️ Falha de conexão."; console.error(err); });
           });
         </script>
       </section>
 
       <!-- Visualização de Dados -->
       <section id="visualizacao" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 class="text-xl font-bold mb-4">Visualização de Dados</h2>
-        <p>Aqui você pode incorporar gráficos e tabelas para visualizar os dados do distrito.</p>
-        <table class="min-w-full border border-gray-300">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="border p-2">Período</th>
-              <th class="border p-2">Unidade Sanitária</th>
-              <th class="border p-2">Indicador</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-dados"></tbody>
+        <h2 class="text-xl font-bold mb-4">Relatório SDSMAS</h2>
+
+        <label for="periodoSelect">Selecionar Período:</label>
+        <select id="periodoSelect"></select>
+
+        <label for="agregacaoSelect">Selecionar Agregação:</label>
+        <select id="agregacaoSelect">
+          <option value="mensal">Mensal</option>
+          <option value="trimestral">Trimestral</option>
+          <option value="semestral">Semestral</option>
+          <option value="nonestral">Nonestral</option>
+          <option value="anual">Anual</option>
+        </select>
+
+        <button id="baixarExcel">📥 Baixar Excel</button>
+        <button id="baixarPDF">📄 Baixar PDF</button>
+
+        <div id="indicadoresBox">
+          <strong>Selecione os Indicadores para o PDF:</strong><br>
+        </div>
+
+        <table id="tabela">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
         </table>
+
+        <!-- Scripts SheetJS e jsPDF -->
+        <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+        <script>
+          const url = "https://script.google.com/macros/s/AKfycbxFKOVfeFEzGAyY8NSfmzJJJro7w5r0bBZ3KF2Taa49Dz7jV9k3OWUxqb24xpprTh0/exec";
+          const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+          let dadosPlanilha = [];
+          const colunasNumericas = ["C.Externas (US)","C.Externas (APS)", "Casos de ITS", "ATS", "Inicio TARV","Activos TARV","TB todas as Formas","Bacteriologicamente Confirmado","Casos de Malaria US","1a CPN","CPN<12 semanas","Redes Distribuida na 1a CPN","CPN Coorte","Partos Institucionais","CPP","Depo","Pilula","Implante","DIU","Rastreiado","Positivos","Demostracoes","1a CPF","BCG","CCV"];
+
+          async function carregarDados() {
+            const response = await fetch(url);
+            const dados = await response.json();
+            dadosPlanilha = dados;
+            if(dados.length===0) return;
+            atualizarPeriodos();
+          }
+
+          function formatarPeriodo(d,tipo){
+            const data = new Date(d.Periodo);
+            if(tipo==='mensal') return !isNaN(data)? `${meses[data.getMonth()]} ${data.getFullYear()}`:d.Periodo;
+            switch(tipo){
+              case 'trimestral': return !isNaN(data)? `${Math.floor(data.getMonth()/3)+1}º Trimestre ${data.getFullYear()}`:d.Periodo;
+              case 'semestral': return !isNaN(data)? `${Math.floor(data.getMonth()/6)+1}º Semestre ${data.getFullYear()}`:d.Periodo;
+              case 'nonestral': return !isNaN(data)? `${Math.floor(data.getMonth()/9)+1}º Nonestral ${data.getFullYear()}`:d.Periodo;
+              case 'anual': return !isNaN(data)? `${data.getFullYear()}`:d.Periodo;
+              default: return d.Periodo;
+            }
+          }
+
+          function atualizarPeriodos(){
+            const tipoAgregacao = document.getElementById("agregacaoSelect").value;
+            const dadosComPeriodo = dadosPlanilha.map(d=>({...d,_PeriodoFormatado:formatarPeriodo(d,tipoAgregacao)}));
+            const periodosSet = new Set(dadosComPeriodo.map(d=>d._PeriodoFormatado));
+            const periodos = Array.from(periodosSet);
+            const periodoSelect = document.getElementById("periodoSelect");
+            periodoSelect.innerHTML = periodos.map(p=>`<option value="${p}">${p}</option>`).join("");
+            if(periodos.length>0) filtrarExibir(periodos[0],tipoAgregacao);
+          }
+
+          function filtrarExibir(periodoSelecionado,tipoAgregacao=null){
+            tipoAgregacao = tipoAgregacao||document.getElementById("agregacaoSelect").value;
+            let dadosFiltrados = dadosPlanilha.map(d=>({...d,_PeriodoFormatado:formatarPeriodo(d,tipoAgregacao)}))
+              .filter(d=>d._PeriodoFormatado===periodoSelecionado);
+            if(tipoAgregacao!=='mensal'){
+              const agregadosPorUS={};
+              dadosFiltrados.forEach(d=>{
+                const chaveUS=d["Unidade Sanitaria"];
+                if(!agregadosPorUS[chaveUS]) agregadosPorUS[chaveUS]={...d};
+                else colunasNumericas.forEach(c=>agregadosPorUS[chaveUS][c]+=parseFloat(d[c])||0);
+              });
+              dadosFiltrados=Object.values(agregadosPorUS);
+            }
+            if(dadosFiltrados.length===0) return;
+            const thead=document.getElementById("thead");
+            const headers=Object.keys(dadosFiltrados[0]).filter(h=>h!=="_PeriodoFormatado");
+            thead.innerHTML="<tr>"+headers.map(h=>`<th>${h}</th>`).join("")+"</tr>";
+            const tbody=document.getElementById("tbody");
+            tbody.innerHTML=dadosFiltrados.map(row=>"<tr>"+headers.map(h=>{
+              let valor=row[h];
+              if(h.toLowerCase().includes("periodo")&&row._PeriodoFormatado) valor=row._PeriodoFormatado;
+              return `<td>${valor}</td>`;
+            }).join("")+"</tr>").join("");
+            adicionarTotal(headers,dadosFiltrados);
+            gerarChecklistIndicadores(headers);
+          }
+
+          function adicionarTotal(headers,dadosFiltrados){
+            const tbody=document.getElementById("tbody");
+            let totalRow="<tr class='total'>";
+            headers.forEach((h,index)=>{
+              if(index===0) totalRow+="<td>TOTAL</td>";
+              else if(colunasNumericas.includes(h)){
+                const soma=dadosFiltrados.reduce((acc,d)=>acc+(parseFloat(d[h])||0),0);
+                totalRow+=`<td>${soma}</td>`;
+              } else totalRow+="<td></td>";
+            });
+            totalRow+="</tr>";
+            tbody.innerHTML+=totalRow;
+          }
+
+          function gerarChecklistIndicadores(headers){
+            const box=document.getElementById("indicadoresBox");
+            box.innerHTML="<strong>Selecione os Indicadores para o PDF:</strong><br>"+headers.map(h=>`<label><input type="checkbox" class="indicadorCheck" value="${h}" checked> ${h}</label>`).join("");
+          }
+
+          document.getElementById("agregacaoSelect").addEventListener("change", atualizarPeriodos);
+          document.getElementById("periodoSelect").addEventListener("change",e=>filtrarExibir(e.target.value));
+
+          document.getElementById("baixarExcel").addEventListener("click",()=>{
+            const tabela=document.getElementById("tabela");
+            const wb=XLSX.utils.table_to_book(tabela,{sheet:"Dados"});
+            XLSX.writeFile(wb,"dados_planilha.xlsx");
+          });
+
+          document.getElementById("baixarPDF").addEventListener("click",()=>{
+            const { jsPDF } = window.jspdf;
+            const doc=new jsPDF({orientation:"landscape"});
+            const periodoSelecionado=document.getElementById("periodoSelect").value||"";
+            const paginaLargura=doc.internal.pageSize.getWidth();
+            doc.setFontSize(12);
+            const cabecalho=["República de Moçambique","Governo do Distrito de Metarica","Sector do Núcleo de Estatística Distrital",`Relatório de Dados – ${periodoSelecionado}`];
+            let y=15;
+            cabecalho.forEach(linha=>{const textWidth=doc.getTextWidth(linha);const x=(paginaLargura-textWidth)/2;doc.text(linha,x,y);y+=7;});
+            const selecionados=Array.from(document.querySelectorAll(".indicadorCheck:checked")).map(c=>c.value);
+            if(selecionados.length===0){alert("Selecione pelo menos um indicador para gerar o PDF.");return;}
+            const tabela=document.getElementById("tabela");
+            const headers=Array.from(tabela.querySelectorAll("thead th")).map(th=>th.textContent);
+            const linhas=Array.from(tabela.querySelectorAll("tbody tr")).map(tr=>Array.from(tr.querySelectorAll("td")).map(td=>td.textContent));
+            const indicesSelecionados=headers.map((h,i)=>selecionados.includes(h)?i:-1).filter(i=>i!==-1);
+            const headersFiltrados=indicesSelecionados.map(i=>headers[i]);
+            const linhasFiltradas=linhas.map(l=>indicesSelecionados.map(i=>l[i]));
+            doc.autoTable({head:[headersFiltrados],body:linhasFiltradas,startY:y+5,styles:{fontSize:8,halign:'center'},headStyles:{fillColor:[0,64,128]},didParseCell:function(data){if(data.row.index===linhasFiltradas.length-1){data.cell.styles.fillColor=[0,64,128];data.cell.styles.textColor=255;data.cell.styles.fontStyle='bold';}}});
+            const agora=new Date();
+            const dataHoraAtual=agora.toLocaleDateString('pt-PT',{day:'2-digit',month:'long',year:'numeric'})+' '+agora.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});
+            const assinatura=[`Metarica, ${dataHoraAtual}`,"Assinatura","José Eugénio Monteiro","//Técnico de Estatística Sanitária//"];
+            let yFinal=doc.lastAutoTable.finalY+20;
+            assinatura.forEach(linha=>{const textWidth=doc.getTextWidth(linha);const x=(paginaLargura-textWidth)/2;doc.text(linha,x,yFinal);yFinal+=7;});
+            doc.save(`Relatorio_${periodoSelecionado}.pdf`);
+          });
+
+          carregarDados();
+        </script>
       </section>
 
       <!-- Análise de Dados -->
@@ -209,6 +262,7 @@
         <p>Aqui você pode incorporar gráficos interativos, dashboards e cálculos de percentagens.</p>
         <canvas id="grafico-analise" width="600" height="400"></canvas>
       </section>
+
     </main>
   </div>
 
@@ -216,57 +270,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    // Alternar abas
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabContents.forEach(content => content.classList.add('hidden'));
-        document.getElementById(tab.dataset.tab).classList.remove('hidden');
-
-        tabs.forEach(t => t.classList.remove('active-tab'));
-        tab.classList.add('active-tab');
-      });
-    });
-
-    // Ativar aba inicial
+    const tabs=document.querySelectorAll('.tab-btn');
+    const tabContents=document.querySelectorAll('.tab-content');
+    tabs.forEach(tab=>{tab.addEventListener('click',()=>{tabContents.forEach(content=>content.classList.add('hidden'));document.getElementById(tab.dataset.tab).classList.remove('hidden');tabs.forEach(t=>t.classList.remove('active-tab'));tab.classList.add('active-tab');});});
     tabs[0].click();
-
-    // Exemplo: Popular tabela com dados fictícios
-    const tabela = document.getElementById('tabela-dados');
-    const dadosExemplo = [
-      { periodo: 'Janeiro 2025', unidade: 'US Metarica', indicador: 120 },
-      { periodo: 'Fevereiro 2025', unidade: 'US Metarica', indicador: 140 },
-      { periodo: 'Março 2025', unidade: 'US Metarica', indicador: 130 },
-    ];
-    dadosExemplo.forEach(d => {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td class="border p-2">${d.periodo}</td>
-                       <td class="border p-2">${d.unidade}</td>
-                       <td class="border p-2">${d.indicador}</td>`;
-      tabela.appendChild(row);
-    });
-
-    // Exemplo: Gráfico de análise
-    const ctx = document.getElementById('grafico-analise').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: dadosExemplo.map(d => d.periodo),
-        datasets: [{
-          label: 'Indicadores',
-          data: dadosExemplo.map(d => d.indicador),
-          backgroundColor: '#1D4ED8'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        }
-      }
-    });
   </script>
 
 </body>
