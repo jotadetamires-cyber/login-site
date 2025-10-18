@@ -11,6 +11,13 @@
   <style>
     body { font-family: 'Roboto', sans-serif; }
     .active-tab { border-bottom: 3px solid #1D4ED8; font-weight: 700; }
+    /* Estilos do formulário de inserção */
+    .form-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+    .form-container label { font-weight: bold; display: block; margin-top: 10px; }
+    .form-container select, .form-container input, .form-container textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+    .form-container button { background: #27ae60; color: white; border: none; padding: 12px 20px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-size: 16px; }
+    .form-container button:hover { background: #219150; }
+    .msg { text-align: center; margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -34,32 +41,156 @@
     <!-- Main Content -->
     <main class="flex-1 p-6 overflow-auto">
       <!-- Inserção de Dados -->
-      <section id="insercao" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 class="text-xl font-bold mb-4">Inserção de Dados</h2>
-        <p>Aqui você pode incorporar seus códigos de inserção de dados (ex.: planilhas, formulários ou uploads).</p>
-        <!-- Exemplo: Formulário -->
-        <form id="form-insercao" class="space-y-4">
-          <label class="block">
-            Período:
-            <input type="month" class="border rounded p-2 w-full" />
-          </label>
-          <label class="block">
-            Unidade Sanitária:
-            <input type="text" class="border rounded p-2 w-full" />
-          </label>
-          <label class="block">
-            Indicador:
-            <input type="number" class="border rounded p-2 w-full" />
-          </label>
-          <button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Salvar</button>
+      <section id="insercao" class="tab-content hidden">
+        <h2 class="text-xl font-bold mb-4 text-center">🩺 Formulário de Inserção de Dados nas US (21 a 24 de Cada Mês)</h2>
+        <form id="form-dados" class="form-container">
+          
+          <label>Período (Mês e Ano):</label>
+          <select id="Periodo" name="Periodo" required></select>
+
+          <label>Unidade Sanitária:</label>
+          <select name="UnidadeSanitaria" required>
+            <option value="" disabled selected>Selecione a Unidade Sanitária</option>
+            <option value="CS de Mecunica">CS de Mecunica</option>
+            <option value="CS de Mepuera">CS de Mepuera</option>
+            <option value="CS de Metarica">CS de Metarica</option>
+            <option value="CS de Muhemela">CS de Muhemela</option>
+            <option value="CS de Nacumua">CS de Nacumua</option>
+            <option value="CS de Namicunde">CS de Namicunde</option>
+            <option value="CS de Niputa">CS de Niputa</option>
+          </select>
+
+          <label>C. Externas (US):</label>
+          <input type="number" name="CExternasUS">
+
+          <label>C. Externas (APS):</label>
+          <input type="number" name="CExternasAPS">
+
+          <label>Casos de ITS:</label>
+          <input type="number" name="CasosITS">
+
+          <label>ATS:</label>
+          <input type="number" name="ATS">
+
+          <label>Início TARV:</label>
+          <input type="number" name="InicioTARV">
+
+          <label>Activos TARV:</label>
+          <input type="number" name="ActivosTARV">
+
+          <label>TB todas as Formas:</label>
+          <input type="number" name="TBTodasFormas">
+
+          <label>Bacteriologicamente Confirmado:</label>
+          <input type="number" name="BacteriologicamenteConfirmado">
+
+          <label>Casos de Malária (US):</label>
+          <input type="number" name="CasosMalariaUS">
+
+          <label>1ª CPN:</label>
+          <input type="number" name="PrimeiraCPN">
+
+          <label>CPN &lt; 12 Semanas:</label>
+          <input type="number" name="CPN12Semanas">
+
+          <label>Redes Distribuídas na 1ª CPN:</label>
+          <input type="number" name="RedesDistribuidas">
+
+          <label>CPN Coorte:</label>
+          <input type="number" name="CPNCoorte">
+
+          <label>Partos Institucionais:</label>
+          <input type="number" name="PartosInstitucionais">
+
+          <label>CPP:</label>
+          <input type="number" name="CPP">
+
+          <label>Depo:</label>
+          <input type="number" name="Depo">
+
+          <label>Pílula:</label>
+          <input type="number" name="Pilula">
+
+          <label>Implante:</label>
+          <input type="number" name="Implante">
+
+          <label>DIU:</label>
+          <input type="number" name="DIU">
+
+          <label>VIAS Rastreado:</label>
+          <input type="number" name="VIASRastreado">
+
+          <label>Positivos:</label>
+          <input type="number" name="Positivos">
+
+          <label>Demonstrações:</label>
+          <input type="number" name="Demostracoes">
+
+          <label>1ª CPF:</label>
+          <input type="number" name="PrimeiraCPF">
+
+          <label>BCG:</label>
+          <input type="number" name="BCG">
+
+          <label>CCV:</label>
+          <input type="number" name="CCV">
+
+          <label>Assinatura:</label>
+          <input type="text" name="Assinatura" required>
+
+          <button type="submit">💾 Guardar Dados</button>
         </form>
+
+        <div class="msg" id="msg"></div>
+
+        <script>
+          // Lista de meses
+          const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+          const periodoSelect = document.getElementById("Periodo");
+          const anoAtual = new Date().getFullYear();
+          const mesAtual = new Date().getMonth();
+          for (let m = 0; m <= mesAtual; m++) {
+            const opt = document.createElement("option");
+            opt.value = meses[m] + " " + anoAtual;
+            opt.textContent = meses[m] + " " + anoAtual;
+            periodoSelect.appendChild(opt);
+          }
+          periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
+
+          // URL do Google Apps Script
+          const scriptURL = "https://script.google.com/macros/s/AKfycbzuIGpHzccD8ilHZbGav1ZJ7FkuktCxkhviNr6784ch1dVTY-cOBTrFxCeMx2vBIkk/exec";
+
+          document.getElementById("form-dados").addEventListener("submit", e => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+
+            // Adiciona data e hora automáticas
+            const agora = new Date();
+            const dataHora = agora.toLocaleDateString('pt-PT') + " " + agora.toLocaleTimeString('pt-PT');
+            form.append("Data", dataHora);
+
+            fetch(scriptURL, { method: "POST", body: form })
+              .then(res => {
+                if (res.ok) {
+                  document.getElementById("msg").innerText = "✅ Dados enviados com sucesso!";
+                  e.target.reset();
+                  periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
+                } else {
+                  document.getElementById("msg").innerText = "❌ Erro ao enviar dados.";
+                }
+              })
+              .catch(err => {
+                document.getElementById("msg").innerText = "⚠️ Falha de conexão.";
+                console.error(err);
+              });
+          });
+        </script>
       </section>
 
       <!-- Visualização de Dados -->
       <section id="visualizacao" class="tab-content hidden bg-white p-6 rounded shadow-md">
         <h2 class="text-xl font-bold mb-4">Visualização de Dados</h2>
         <p>Aqui você pode incorporar gráficos e tabelas para visualizar os dados do distrito.</p>
-        <!-- Exemplo: Tabela -->
         <table class="min-w-full border border-gray-300">
           <thead class="bg-gray-200">
             <tr>
@@ -68,9 +199,7 @@
               <th class="border p-2">Indicador</th>
             </tr>
           </thead>
-          <tbody id="tabela-dados">
-            <!-- Dados serão preenchidos via JS -->
-          </tbody>
+          <tbody id="tabela-dados"></tbody>
         </table>
       </section>
 
@@ -78,7 +207,6 @@
       <section id="analise" class="tab-content hidden bg-white p-6 rounded shadow-md">
         <h2 class="text-xl font-bold mb-4">Análise de Dados</h2>
         <p>Aqui você pode incorporar gráficos interativos, dashboards e cálculos de percentagens.</p>
-        <!-- Exemplo: Gráfico -->
         <canvas id="grafico-analise" width="600" height="400"></canvas>
       </section>
     </main>
