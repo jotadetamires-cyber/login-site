@@ -97,7 +97,25 @@
       <!-- Análise de Dados -->
       <section id="analise" class="tab-content hidden bg-white p-6 rounded shadow-md">
         <h2 class="text-xl font-bold mb-4">Análise de Dados</h2>
-        <p>Aqui você pode incorporar gráficos interativos, dashboards e cálculos de percentagens.</p>
+        
+        <label for="tipoAnalise">Selecionar Tipo de Análise:</label>
+        <select id="tipoAnalise" class="mb-4 p-2 border rounded w-full">
+          <option value="cobertura">Coberturas</option>
+          <option value="percentagem">Percentagens</option>
+          <option value="evolucao">Evolução dos Casos</option>
+          <option value="tendencia">Tendência dos Casos</option>
+        </select>
+        
+        <label for="unidadeAnalise">Selecionar Unidade Sanitária:</label>
+        <select id="unidadeAnalise" class="mb-4 p-2 border rounded w-full">
+          <option value="todas">Todas</option>
+        </select>
+        
+        <label for="periodoAnalise">Selecionar Período:</label>
+        <select id="periodoAnalise" class="mb-4 p-2 border rounded w-full">
+          <option value="todos">Todos</option>
+        </select>
+
         <canvas id="grafico-analise" width="600" height="400"></canvas>
       </section>
 
@@ -114,7 +132,7 @@
   <script>
     document.addEventListener('DOMContentLoaded',()=>{
 
-      // Menu Tabs
+      // --- Menu Tabs ---
       const tabs=document.querySelectorAll('.tab-btn');
       const tabContents=document.querySelectorAll('.tab-content');
       tabs.forEach(tab=>{
@@ -139,6 +157,7 @@
         periodoInsercao.appendChild(opt);
       }
       periodoInsercao.value=`${meses[mesAtual]} ${anoAtual}`;
+
       const formDados=document.getElementById("form-dados");
       formDados.addEventListener("submit",e=>{
         e.preventDefault();
@@ -165,6 +184,8 @@
           const dados=await res.json();
           dadosPlanilha=dados;
           atualizarPeriodos();
+          atualizarFiltrosAnalise();
+          gerarGraficoAnalise();
         }catch(e){console.error("Erro ao carregar dados:",e);}
       }
 
@@ -172,9 +193,9 @@
         const data=new Date(d.Periodo);
         if(tipo==="mensal") return !isNaN(data)?`${meses[data.getMonth()]} ${data.getFullYear()}`:d.Periodo;
         switch(tipo){
-          case "trimestral": return !isNaN(data)?`${Math.floor(data.getMonth()/3)+1}º Trimestre ${data.Periodo.split(' ')[1]}`:d.Periodo;
-          case "semestral": return !isNaN(data)?`${Math.floor(data.getMonth()/6)+1}º Semestre ${data.Periodo.split(' ')[1]}`:d.Periodo;
-          case "nonestral": return !isNaN(data)?`${Math.floor(data.getMonth()/9)+1}º Nonestral ${data.Periodo.split(' ')[1]}`:d.Periodo;
+          case "trimestral": return !isNaN(data)?`${Math.floor(data.getMonth()/3)+1}º Trimestre ${d.Periodo.split(' ')[1]}`:d.Periodo;
+          case "semestral": return !isNaN(data)?`${Math.floor(data.getMonth()/6)+1}º Semestre ${d.Periodo.split(' ')[1]}`:d.Periodo;
+          case "nonestral": return !isNaN(data)?`${Math.floor(data.getMonth()/9)+1}º Nonestral ${d.Periodo.split(' ')[1]}`:d.Periodo;
           case "anual": return !isNaN(data)?`${data.getFullYear()}`:d.Periodo;
           default: return d.Periodo;
         }
@@ -253,6 +274,91 @@
         assinatura.forEach(linha=>{const w=doc.getTextWidth(linha);doc.text(linha,(largura-w)/2,yFinal);yFinal+=7;});
         doc.save(`Relatorio_${periodo}.pdf`);
       });
+
+      // --- Análise de Dados ---
+      const tipoAnalise = document.getElementById("tipoAnalise");
+      const unidadeAnalise = document.getElementById("unidadeAnalise");
+      const periodoAnalise = document.getElementById("periodoAnalise");
+      const ctxAnalise = document.getElementById("grafico-analise").getContext("2d");
+      let graficoAnalise;
+
+      function atualizarFiltrosAnalise() {
+        const unidades = new Set(dadosPlanilha.map(d => d["Unidade Sanitaria"]));
+        unidadeAnalise.innerHTML = '<option value="todas">Todas</option>' +
+          Array.from(unidades).map(u => `<option value="${u}">${u}</option>`).join('');
+
+        const periodos = new Set(dadosPlanilha.map(d => d.Periodo));
+        periodoAnalise.innerHTML = '<option value="todos">Todos</option>' +
+          Array.from(periodos).map(p => `<option value="${p}">${p}</option>`).join('');
+      }
+
+      function filtrarDadosAnalise() {
+        let dados = [...dadosPlanilha];
+        if (unidadeAnalise.value !== "todas") dados = dados.filter(d => d["Unidade Sanitaria"] === unidadeAnalise.value);
+        if (periodoAnalise.value !== "todos") dados = dados.filter(d => d.Periodo === periodoAnalise.value);
+        return dados;
+      }
+
+      function gerarGraficoAnalise() {
+        const dadosFiltrados = filtrarDadosAnalise();
+        if (!dadosFiltrados.length) return;
+
+        let labels = [];
+        let valores = [];
+        const tipo = tipoAnalise.value;
+
+        switch(tipo){
+          case "cobertura":
+            labels = dadosFiltrados.map(d => d["Unidade Sanitaria"]);
+            valores = dadosFiltrados.map(d => parseFloat(d["1a CPN"]) || 0);
+            break;
+          case "percentagem":
+            labels = dadosFiltrados.map(d => d["Unidade Sanitaria"]);
+            valores = dadosFiltrados.map(d => {
+              const cpn = parseFloat(d["1a CPN"]) || 0;
+              const cpn12 = parseFloat(d["CPN<12 semanas"]) || 0;
+              return cpn ? ((cpn12/cpn)*100).toFixed(2) : 0;
+            });
+            break;
+          case "evolucao":
+            labels = dadosFiltrados.map(d => d.Periodo);
+            valores = dadosFiltrados.map(d => parseFloat(d["Casos de Malaria US"]) || 0);
+            break;
+          case "tendencia":
+            labels = dadosFiltrados.map(d => d.Periodo);
+            valores = dadosFiltrados.map(d => parseFloat(d["1a CPN"]) || 0);
+            break;
+        }
+
+        if (graficoAnalise) graficoAnalise.destroy();
+
+        graficoAnalise = new Chart(ctxAnalise, {
+          type: (tipo === "tendencia" || tipo === "evolucao") ? "line" : "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: tipoAnalise.options[tipoAnalise.selectedIndex].text,
+              data: valores,
+              backgroundColor: 'rgba(54, 162, 235, 0.6)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              fill: false,
+              tension: 0.2
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      tipoAnalise.addEventListener("change", gerarGraficoAnalise);
+      unidadeAnalise.addEventListener("change", gerarGraficoAnalise);
+      periodoAnalise.addEventListener("change", gerarGraficoAnalise);
 
       carregarDados();
 
