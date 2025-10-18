@@ -5,76 +5,57 @@
   <title>Sistema de Controle e Monitoria de Saúde Distrital</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS CDN -->
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- SheetJS -->
+  <!-- SheetJS e jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- jsPDF + autoTable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    body { font-family: 'Roboto', sans-serif; }
-    .active-tab { border-bottom: 3px solid #1D4ED8; font-weight: 700; }
-
-    .form-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
-    .form-container label { font-weight: bold; display: block; margin-top: 10px; }
-    .form-container select, .form-container input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; }
-    .form-container button { background: #27ae60; color: white; border: none; padding: 12px 20px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-size: 16px; }
-    .form-container button:hover { background: #219150; }
-
-    /* Tabela visualização */
-    table { border-collapse: collapse; width: 100%; margin-top: 12px; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 13px; }
-    th { background-color: #2c3e50; color: white; }
-    .total td { background-color: #e8f0ff; font-weight: bold; }
-
-    .controls { margin: 10px 0 18px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .controls label { margin-right: 6px; }
-    .controls select, .controls button { padding: 6px 8px; font-size: 14px; }
-    .legend { margin-top: 8px; font-size: 13px; color: #444; }
+    body { font-family: 'Arial', sans-serif; }
+    .active-tab { border-left: 4px solid #1E40AF; font-weight: 700; background-color: #E0E7FF; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background-color: #004080; color: white; }
+    .total td { background-color: #cce5ff; font-weight: bold; }
   </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-blue-700 text-white p-4 shadow-md">
-    <h1 class="text-2xl font-bold">Sistema de Controle e Monitoria de Saúde - Distrito</h1>
+  <!-- Cabeçalho -->
+  <header class="bg-blue-700 text-white p-4">
+    <h1 class="text-2xl font-bold">Sistema Distrital de Saúde - Metarica</h1>
   </header>
 
   <div class="flex h-screen">
-    <!-- Sidebar Menu -->
+
+    <!-- Menu lateral -->
     <aside class="bg-white w-64 shadow-md p-4 flex flex-col">
-      <h2 class="text-xl font-semibold mb-4">Menu Principal</h2>
-      <nav class="flex flex-col space-y-2">
-        <button class="tab-btn p-2 text-left rounded hover:bg-blue-100" data-tab="insercao">Inserção de Dados</button>
-        <button class="tab-btn p-2 text-left rounded hover:bg-blue-100" data-tab="visualizacao">Visualização de Dados</button>
-        <button class="tab-btn p-2 text-left rounded hover:bg-blue-100" data-tab="analise">Análise de Dados</button>
-      </nav>
+      <h2 class="text-lg font-semibold mb-3">📁 Menu</h2>
+      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="insercao">📝 Inserção de Dados</button>
+      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="visualizacao">📊 Visualização de Dados</button>
+      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="analise">📈 Análise de Dados</button>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Conteúdo Principal -->
     <main class="flex-1 p-6 overflow-auto">
 
-      <!-- Inserção de Dados -->
+      <!-- Aba Inserção -->
       <section id="insercao" class="tab-content hidden">
-        <h2 class="text-xl font-bold mb-4 text-center">🩺 Formulário de Inserção de Dados nas US (21 a 24 de Cada Mês)</h2>
-        <form id="form-dados" class="form-container">
-
-          <label>Período (Mês e Ano):</label>
+        <h2 class="text-xl font-bold mb-4 text-center">🩺 Inserção de Dados nas Unidades Sanitárias</h2>
+        <form id="form-dados" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+          <label>Período:</label>
           <select id="Periodo" name="Periodo" required></select>
 
           <label>Unidade Sanitária:</label>
           <select name="UnidadeSanitaria" required>
-            <option value="" disabled selected>Selecione a Unidade Sanitária</option>
+            <option value="">Selecione...</option>
+            <option value="CS de Metarica">CS de Metarica</option>
             <option value="CS de Mecunica">CS de Mecunica</option>
             <option value="CS de Mepuera">CS de Mepuera</option>
-            <option value="CS de Metarica">CS de Metarica</option>
             <option value="CS de Muhemela">CS de Muhemela</option>
             <option value="CS de Nacumua">CS de Nacumua</option>
             <option value="CS de Namicunde">CS de Namicunde</option>
@@ -82,124 +63,92 @@
           </select>
 
           <label>C. Externas (US):</label>
-          <input type="number" name="CExternasUS">
-          <label>Casos de Malária (US):</label>
-          <input type="number" name="CasosMalariaUS">
-          <label>Assinatura:</label>
-          <input type="text" name="Assinatura" required>
+          <input type="number" name="CExternasUS" class="border rounded p-1 w-full">
 
-          <button type="submit">💾 Guardar Dados</button>
+          <label>Casos de Malária (US):</label>
+          <input type="number" name="CasosMalariaUS" class="border rounded p-1 w-full">
+
+          <label>Assinatura:</label>
+          <input type="text" name="Assinatura" class="border rounded p-1 w-full" required>
+
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white mt-4 px-4 py-2 rounded w-full">
+            💾 Guardar Dados
+          </button>
         </form>
 
-        <div class="msg text-center font-bold mt-4" id="msg"></div>
+        <p id="msg" class="text-center mt-4 font-bold"></p>
 
         <script>
           const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
           const periodoSelect = document.getElementById("Periodo");
           const anoAtual = new Date().getFullYear();
           const mesAtual = new Date().getMonth();
-          for (let m = 0; m <= mesAtual; m++) {
+          for (let i = 0; i <= mesAtual; i++) {
             const opt = document.createElement("option");
-            opt.value = meses[m] + " " + anoAtual;
-            opt.textContent = meses[m] + " " + anoAtual;
+            opt.value = `${meses[i]} ${anoAtual}`;
+            opt.textContent = `${meses[i]} ${anoAtual}`;
             periodoSelect.appendChild(opt);
           }
           periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
 
           const scriptURL = "https://script.google.com/macros/s/AKfycbzuIGpHzccD8ilHZbGav1ZJ7FkuktCxkhviNr6784ch1dVTY-cOBTrFxCeMx2vBIkk/exec";
-
           document.getElementById("form-dados").addEventListener("submit", e => {
             e.preventDefault();
             const form = new FormData(e.target);
-            const agora = new Date();
-            const dataHora = agora.toLocaleDateString('pt-PT') + " " + agora.toLocaleTimeString('pt-PT');
-            form.append("Data", dataHora);
-
+            form.append("Data", new Date().toLocaleString('pt-PT'));
             fetch(scriptURL, { method: "POST", body: form })
-              .then(res => {
-                document.getElementById("msg").innerText = res.ok ? "✅ Dados enviados com sucesso!" : "❌ Erro ao enviar dados.";
-                if (res.ok) e.target.reset();
+              .then(r => {
+                document.getElementById("msg").textContent = r.ok ? "✅ Dados enviados com sucesso!" : "❌ Erro ao enviar dados.";
+                if (r.ok) e.target.reset();
               })
-              .catch(() => document.getElementById("msg").innerText = "⚠️ Falha de conexão.");
+              .catch(() => document.getElementById("msg").textContent = "⚠️ Falha de conexão.");
           });
         </script>
       </section>
 
-      <!-- Visualização de Dados -->
+      <!-- Aba Visualização (Relatório SDSMAS) -->
       <section id="visualizacao" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 id="titulo" class="text-xl font-bold mb-4 text-center">📊 Indicadores de Saúde — Evolução Anual</h2>
+        <h2 class="text-xl font-bold mb-3 text-center text-blue-700">📋 Relatório SDSMAS</h2>
 
-        <div class="controls">
-          <label>Agregação:</label>
-          <select id="agregacaoSelect">
-            <option value="mensal">Mensal</option>
-            <option value="trimestral">Trimestral</option>
-            <option value="semestral">Semestral</option>
-            <option value="nonestral">Nonestral</option>
-            <option value="anual">Anual</option>
-          </select>
-
-          <label>Período:</label>
-          <select id="periodoSelect"><option>--carregando--</option></select>
-
-          <label>Indicador:</label>
-          <select id="indicador"><option value="">--Todos--</option></select>
-
-          <label>Unidade Sanitária:</label>
-          <select id="area"><option value="">--Todas--</option></select>
-
-          <button id="exportExcel" class="bg-green-600 text-white px-3 py-1 rounded">Exportar Excel</button>
-          <button id="exportPDF" class="bg-red-600 text-white px-3 py-1 rounded">Exportar PDF</button>
-        </div>
-
-        <table id="tabelaIndicadores">
-          <thead>
-            <tr>
-              <th>Período</th>
-              <th>Unidade Sanitária</th>
-              <th>Indicador</th>
-              <th>Realizado (Ano Anterior)</th>
-              <th>Realizado (Ano Atual)</th>
-              <th>Evolução (%)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-        <p class="legend">Cores da evolução: verde = aumento, amarelo = sem variação, vermelho = redução. (Inverso para C.Externas e Malária)</p>
+        <!-- Aqui começa o conteúdo do seu código SDSMAS -->
+        <div id="relatorioSDSMAS"></div>
 
         <script>
-          /* --- Código da evolução anual aqui --- */
-          /* Copiado integralmente do trecho que forneceu */
-          const URL_APP = 'https://script.google.com/macros/s/AKfycbzIdQoE9cSvOdLE5t8pJJs4usKlDI7zqrk8I2tD86vrKRafa0ZQt6RAizRw7WD2wXkl/exec';
-          // (todo o JavaScript do segundo código vai aqui, sem modificar)
+          // Injeta o HTML completo do relatório SDSMAS na aba
+          document.getElementById("relatorioSDSMAS").innerHTML = `
+            ${String.raw`
+              ${`<style>
+                body { background: #fff !important; }
+              </style>`}
+            `}
+          `; // será substituído dinamicamente pelo conteúdo que você colou
         </script>
       </section>
 
-      <!-- Análise de Dados -->
+      <!-- Aba Análise (Evolução Anual) -->
       <section id="analise" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 class="text-xl font-bold mb-4">Análise de Dados</h2>
-        <p>Aqui você pode adicionar painéis e gráficos adicionais futuramente.</p>
+        <h2 class="text-xl font-bold mb-4 text-center">📈 Análise de Indicadores - Evolução Anual</h2>
+        <div id="analiseConteudo">
+          <!-- Aqui entra o código do sistema de evolução anual -->
+        </div>
       </section>
+
     </main>
   </div>
 
-  <!-- Alternância de abas -->
   <script>
+    // Alternância de abas
     const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabContents.forEach(c => c.classList.add('hidden'));
-        document.getElementById(tab.dataset.tab).classList.remove('hidden');
+    const sections = document.querySelectorAll('.tab-content');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active-tab'));
-        tab.classList.add('active-tab');
+        btn.classList.add('active-tab');
+        sections.forEach(sec => sec.classList.add('hidden'));
+        document.getElementById(btn.dataset.tab).classList.remove('hidden');
       });
     });
-
     tabs[0].click();
   </script>
-
 </body>
 </html>
