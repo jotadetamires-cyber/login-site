@@ -1,154 +1,107 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Sistema de Controle e Monitoria de Saúde Distrital</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- TailwindCSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- SheetJS e jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
-  <style>
-    body { font-family: 'Arial', sans-serif; }
-    .active-tab { border-left: 4px solid #1E40AF; font-weight: 700; background-color: #E0E7FF; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-    th { background-color: #004080; color: white; }
-    .total td { background-color: #cce5ff; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>Relatório Epidemiológico - Metarica</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f7f9fb; }
+h1, h2 { color: #004080; }
+label { margin-right: 10px; }
+select { margin-bottom: 20px; padding: 5px; }
+.report-section { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+th { background: #e2e2e2; }
+</style>
 </head>
+<body>
 
-<body class="bg-gray-100 min-h-screen">
+<h1>Relatório Epidemiológico - SDSMAS Metarica</h1>
 
-  <!-- Cabeçalho -->
-  <header class="bg-blue-700 text-white p-4">
-    <h1 class="text-2xl font-bold">Sistema Distrital de Saúde - Metarica</h1>
-  </header>
+<label for="periodo">Selecione o Período:</label>
+<select id="periodo" onchange="atualizarRelatorio()">
+  <option value="2025-08">Agosto 2025</option>
+  <option value="2024-08">Agosto 2024</option>
+</select>
 
-  <div class="flex h-screen">
+<div id="relatorio"></div>
 
-    <!-- Menu lateral -->
-    <aside class="bg-white w-64 shadow-md p-4 flex flex-col">
-      <h2 class="text-lg font-semibold mb-3">📁 Menu</h2>
-      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="insercao">📝 Inserção de Dados</button>
-      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="visualizacao">📊 Visualização de Dados</button>
-      <button class="tab-btn text-left p-2 rounded hover:bg-blue-100" data-tab="analise">📈 Análise de Dados</button>
-    </aside>
+<script>
+// Dados de exemplo (você pode expandir para todos os indicadores)
+const dados = {
+  "2025-08": {
+    "consultas_externas": {realizado: 9192, previsto: 7450},
+    "malaria": {casos: 2435, sem_obito: true, anterior: 1765},
+    "sarampo": {realizado: 315, previsto: 264, anterior: 265},
+    "diarreia": {casos: 51, anterior: 41},
+    "disenteria": {casos: 10, anterior: 9},
+    "hiv_testados": {realizado: 594, positivos: 9, anterior: 782, anterior_positivos: 7},
+    "cancro_uterino": {rastreadas: 136, positivas: 7, anterior_rastreadas: 205},
+    "partos": {realizado: 309, previsto: 228, anterior: 295},
+    "tip": {administradas: 265, previsto: 289, anterior: 311},
+    "internados": {total: 30, anterior: 47},
+    "cpn": {realizado: 498, previsto: 253, anterior: 302},
+    "pos_parto": {realizado: 309, previsto: 228, anterior: 312},
+    "redes": {distribuidas: 411, inscritas: 455, anterior: 296},
+    "tb": {diagnosticados: 11, esperados: 14, anterior: 9},
+    "planeamento_familiar": {consultas: 446, esperado: 1008, anterior: 965},
+    "baixo_peso": {nados_vivos: 309, <2_5kg: 7, anterior: 0},
+    "vitamina_a": {suplementadas: 1415, esperado: 881, anterior: 1265},
+    "saude_oral": {consultas: 101, anterior: 98, cáries: 40, cáries_anterior: 30, exodontias: 61, exodontias_anterior: 21}
+  },
+  "2024-08": {
+    "consultas_externas": {realizado: 7450, previsto: 7000},
+    "malaria": {casos: 1765, sem_obito: true},
+    "sarampo": {realizado: 265, previsto: 264},
+    "diarreia": {casos: 41},
+    "disenteria": {casos: 9},
+    "hiv_testados": {realizado: 782, positivos: 7},
+    "cancro_uterino": {rastreadas: 205, positivas: 0},
+    "partos": {realizado: 295, previsto: 228},
+    "tip": {administradas: 311, previsto: 289},
+    "internados": {total: 47},
+    "cpn": {realizado: 302, previsto: 253},
+    "pos_parto": {realizado: 312, previsto: 228},
+    "redes": {distribuidas: 296, inscritas: 455},
+    "tb": {diagnosticados: 9, esperados: 14},
+    "planeamento_familiar": {consultas: 965, esperado: 1008},
+    "baixo_peso": {nados_vivos: 309, <2_5kg: 0},
+    "vitamina_a": {suplementadas: 1265, esperado: 881},
+    "saude_oral": {consultas: 98, cáries: 30, exodontias: 21}
+  }
+};
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-1 p-6 overflow-auto">
+function calcularVariacao(valorAtual, valorAnterior) {
+  if (!valorAnterior || valorAnterior === 0) return "-";
+  return (((valorAtual - valorAnterior)/valorAnterior)*100).toFixed(1) + "%";
+}
 
-      <!-- Aba Inserção -->
-      <section id="insercao" class="tab-content hidden">
-        <h2 class="text-xl font-bold mb-4 text-center">🩺 Inserção de Dados nas Unidades Sanitárias</h2>
-        <form id="form-dados" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
-          <label>Período:</label>
-          <select id="Periodo" name="Periodo" required></select>
+function calcularCobertura(realizado, previsto) {
+  if (!previsto || previsto === 0) return "-";
+  return ((realizado / previsto) * 100).toFixed(1) + "%";
+}
 
-          <label>Unidade Sanitária:</label>
-          <select name="UnidadeSanitaria" required>
-            <option value="">Selecione...</option>
-            <option value="CS de Metarica">CS de Metarica</option>
-            <option value="CS de Mecunica">CS de Mecunica</option>
-            <option value="CS de Mepuera">CS de Mepuera</option>
-            <option value="CS de Muhemela">CS de Muhemela</option>
-            <option value="CS de Nacumua">CS de Nacumua</option>
-            <option value="CS de Namicunde">CS de Namicunde</option>
-            <option value="CS de Niputa">CS de Niputa</option>
-          </select>
+function atualizarRelatorio() {
+  const periodo = document.getElementById('periodo').value;
+  const r = dados[periodo];
+  const rAnterior = periodo === "2025-08" ? dados["2024-08"] : dados["2025-08"];
 
-          <label>C. Externas (US):</label>
-          <input type="number" name="CExternasUS" class="border rounded p-1 w-full">
+  let html = `<div class="report-section"><h2>Indicadores de Saúde</h2>
+    <table>
+      <tr><th>Indicador</th><th>Realizado</th><th>Previsto</th><th>Cobertura</th><th>Variação</th></tr>
+      <tr><td>Consultas Externas</td><td>${r.consultas_externas.realizado}</td><td>${r.consultas_externas.previsto}</td><td>${calcularCobertura(r.consultas_externas.realizado, r.consultas_externas.previsto)}</td><td>${calcularVariacao(r.consultas_externas.realizado, rAnterior.consultas_externas.realizado)}</td></tr>
+      <tr><td>Casos de Malária</td><td>${r.malaria.casos}</td><td>-</td><td>-</td><td>${calcularVariacao(r.malaria.casos, rAnterior.malaria.casos)}</td></tr>
+      <tr><td>Vacinação Sarampo</td><td>${r.sarampo.realizado}</td><td>${r.sarampo.previsto}</td><td>${calcularCobertura(r.sarampo.realizado, r.sarampo.previsto)}</td><td>${calcularVariacao(r.sarampo.realizado, rAnterior.sarampo.realizado)}</td></tr>
+      <tr><td>Partos Institucionais</td><td>${r.partos.realizado}</td><td>${r.partos.previsto}</td><td>${calcularCobertura(r.partos.realizado, r.partos.previsto)}</td><td>${calcularVariacao(r.partos.realizado, rAnterior.partos.realizado)}</td></tr>
+    </table>
+  </div>`;
 
-          <label>Casos de Malária (US):</label>
-          <input type="number" name="CasosMalariaUS" class="border rounded p-1 w-full">
+  document.getElementById('relatorio').innerHTML = html;
+}
 
-          <label>Assinatura:</label>
-          <input type="text" name="Assinatura" class="border rounded p-1 w-full" required>
+// Inicializa com o primeiro período
+atualizarRelatorio();
+</script>
 
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white mt-4 px-4 py-2 rounded w-full">
-            💾 Guardar Dados
-          </button>
-        </form>
-
-        <p id="msg" class="text-center mt-4 font-bold"></p>
-
-        <script>
-          const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-          const periodoSelect = document.getElementById("Periodo");
-          const anoAtual = new Date().getFullYear();
-          const mesAtual = new Date().getMonth();
-          for (let i = 0; i <= mesAtual; i++) {
-            const opt = document.createElement("option");
-            opt.value = `${meses[i]} ${anoAtual}`;
-            opt.textContent = `${meses[i]} ${anoAtual}`;
-            periodoSelect.appendChild(opt);
-          }
-          periodoSelect.value = `${meses[mesAtual]} ${anoAtual}`;
-
-          const scriptURL = "https://script.google.com/macros/s/AKfycbzuIGpHzccD8ilHZbGav1ZJ7FkuktCxkhviNr6784ch1dVTY-cOBTrFxCeMx2vBIkk/exec";
-          document.getElementById("form-dados").addEventListener("submit", e => {
-            e.preventDefault();
-            const form = new FormData(e.target);
-            form.append("Data", new Date().toLocaleString('pt-PT'));
-            fetch(scriptURL, { method: "POST", body: form })
-              .then(r => {
-                document.getElementById("msg").textContent = r.ok ? "✅ Dados enviados com sucesso!" : "❌ Erro ao enviar dados.";
-                if (r.ok) e.target.reset();
-              })
-              .catch(() => document.getElementById("msg").textContent = "⚠️ Falha de conexão.");
-          });
-        </script>
-      </section>
-
-      <!-- Aba Visualização (Relatório SDSMAS) -->
-      <section id="visualizacao" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 class="text-xl font-bold mb-3 text-center text-blue-700">📋 Relatório SDSMAS</h2>
-
-        <!-- Aqui começa o conteúdo do seu código SDSMAS -->
-        <div id="relatorioSDSMAS"></div>
-
-        <script>
-          // Injeta o HTML completo do relatório SDSMAS na aba
-          document.getElementById("relatorioSDSMAS").innerHTML = `
-            ${String.raw`
-              ${`<style>
-                body { background: #fff !important; }
-              </style>`}
-            `}
-          `; // será substituído dinamicamente pelo conteúdo que você colou
-        </script>
-      </section>
-
-      <!-- Aba Análise (Evolução Anual) -->
-      <section id="analise" class="tab-content hidden bg-white p-6 rounded shadow-md">
-        <h2 class="text-xl font-bold mb-4 text-center">📈 Análise de Indicadores - Evolução Anual</h2>
-        <div id="analiseConteudo">
-          <!-- Aqui entra o código do sistema de evolução anual -->
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <script>
-    // Alternância de abas
-    const tabs = document.querySelectorAll('.tab-btn');
-    const sections = document.querySelectorAll('.tab-content');
-    tabs.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active-tab'));
-        btn.classList.add('active-tab');
-        sections.forEach(sec => sec.classList.add('hidden'));
-        document.getElementById(btn.dataset.tab).classList.remove('hidden');
-      });
-    });
-    tabs[0].click();
-  </script>
 </body>
 </html>
