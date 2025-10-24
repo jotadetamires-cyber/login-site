@@ -1,76 +1,68 @@
-import math
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora Interativa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 50px;
+      background-color: #f7f7f7;
+    }
+    input {
+      padding: 10px;
+      margin: 5px;
+      width: 150px;
+    }
+    .resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    h2 {
+      color: #004080;
+    }
+  </style>
+</head>
+<body>
 
-def soma(a, b):
-    return a + b
+  <h2>Calculadora Interativa</h2>
 
-def subtracao(a, b):
-    return a - b
+  <label for="num1">Número 1:</label>
+  <input type="number" id="num1" oninput="calcular()"><br>
 
-def multiplicacao(a, b):
-    return a * b
+  <label for="num2">Número 2:</label>
+  <input type="number" id="num2" oninput="calcular()"><br>
 
-def divisao(a, b):
-    if b != 0:
-        return a / b
-    else:
-        return "Erro: divisão por zero!"
+  <div class="resultado" id="resultado">
+    Insira os números para ver os resultados.
+  </div>
 
-def potenciacao(a, b):
-    return a ** b
+  <script>
+    function calcular() {
+      const n1 = parseFloat(document.getElementById('num1').value);
+      const n2 = parseFloat(document.getElementById('num2').value);
 
-def raiz_quadrada(a):
-    if a >= 0:
-        return math.sqrt(a)
-    else:
-        return "Erro: número negativo não possui raiz quadrada real!"
+      if (isNaN(n1) || isNaN(n2)) {
+        document.getElementById('resultado').innerHTML = "Insira dois números válidos.";
+        return;
+      }
 
-def modulo(a, b):
-    return a % b
+      const soma = n1 + n2;
+      const media = (n1 + n2) / 2;
+      const raiz1 = Math.sqrt(n1);
+      const raiz2 = Math.sqrt(n2);
 
-def calculadora_avancada():
-    while True:
-        print("\n=== Calculadora Avançada ===")
-        print("Escolha a operação:")
-        print("1 - Soma")
-        print("2 - Subtração")
-        print("3 - Multiplicação")
-        print("4 - Divisão")
-        print("5 - Potenciação")
-        print("6 - Raiz Quadrada")
-        print("7 - Módulo")
-        print("0 - Sair")
+      document.getElementById('resultado').innerHTML = `
+        <strong>Soma:</strong> ${soma} <br>
+        <strong>Média:</strong> ${media} <br>
+        <strong>Raiz Quadrada do Número 1:</strong> ${raiz1.toFixed(2)} <br>
+        <strong>Raiz Quadrada do Número 2:</strong> ${raiz2.toFixed(2)}
+      `;
+    }
+  </script>
 
-        escolha = input("Digite o número da operação: ")
-
-        if escolha == '0':
-            print("Saindo da calculadora. Até logo!")
-            break
-
-        if escolha in ['1', '2', '3', '4', '5', '6', '7']:
-            try:
-                if escolha == '6':  # Raiz quadrada precisa de apenas 1 número
-                    num = float(input("Digite o número: "))
-                    print("Resultado:", raiz_quadrada(num))
-                else:  # As outras operações precisam de dois números
-                    num1 = float(input("Digite o primeiro número: "))
-                    num2 = float(input("Digite o segundo número: "))
-
-                    if escolha == '1':
-                        print("Resultado:", soma(num1, num2))
-                    elif escolha == '2':
-                        print("Resultado:", subtracao(num1, num2))
-                    elif escolha == '3':
-                        print("Resultado:", multiplicacao(num1, num2))
-                    elif escolha == '4':
-                        print("Resultado:", divisao(num1, num2))
-                    elif escolha == '5':
-                        print("Resultado:", potenciacao(num1, num2))
-                    elif escolha == '7':
-                        print("Resultado:", modulo(num1, num2))
-            except ValueError:
-                print("Erro: entrada inválida! Digite apenas números.")
-        else:
-            print("Opção inválida. Tente novamente.")
-
-# Executa a calculadora avançada
-calculadora_avancada()
+</body>
+</html>
