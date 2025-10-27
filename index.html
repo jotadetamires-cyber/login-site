@@ -1,33 +1,111 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculadora Interativa</title>
-  <style>
-     <script>
-    function calcular() {
-      const n1 = parseFloat(document.getElementById('num1').value);
-      const n2 = parseFloat(document.getElementById('num2').value);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inserção de Dados - Sistema Distrital de Saúde</title>
 
-      if (isNaN(n1) || isNaN(n2)) {
-        document.getElementById('resultado').innerHTML = "Insira dois números válidos.";
-        return;
-      }
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  form {
+    background: white;
+    padding: 25px 35px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    width: 380px;
+  }
+  h2 {
+    text-align: center;
+    color: #004080;
+  }
+  label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #0056b3;
+  }
+  #resposta {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+</style>
+</head>
 
-      const soma = n1 + n2;
-      const media = (n1 + n2) / 2;
-      const raiz1 = Math.sqrt(n1);
-      const raiz2 = Math.sqrt(n2);
+<body>
+<form id="formulario">
+  <h2>Inserir Dados</h2>
 
-      document.getElementById('resultado').innerHTML = `
-        <strong>Soma:</strong> ${soma} <br>
-        <strong>Média:</strong> ${media} <br>
-        <strong>Raiz Quadrada do Número 1:</strong> ${raiz1.toFixed(2)} <br>
-        <strong>Raiz Quadrada do Número 2:</strong> ${raiz2.toFixed(2)}
-      `;
-    }
-  </script>
+  <label>Período:</label>
+  <input type="text" id="periodo" placeholder="Ex: Outubro 2025" required>
 
+  <label>Unidade Sanitária:</label>
+  <input type="text" id="unidade" placeholder="Ex: CS Metarica" required>
+
+  <label>Recop de Custo (MT):</label>
+  <input type="number" id="recop" placeholder="Ex: 2500" required>
+
+  <label>Receitas Consignadas (MT):</label>
+  <input type="number" id="receita" placeholder="Ex: 1500" required>
+
+  <button type="submit">Enviar Dados</button>
+  <p id="resposta"></p>
+</form>
+
+<script>
+const scriptURL = "COLE_AQUI_O_LINK_DO_SEU_WEB_APP";
+
+document.getElementById("formulario").addEventListener("submit", e => {
+  e.preventDefault();
+  document.getElementById("resposta").innerText = "⏳ Enviando...";
+
+  const dados = {
+    periodo: document.getElementById("periodo").value,
+    unidade: document.getElementById("unidade").value,
+    recop: document.getElementById("recop").value,
+    receita: document.getElementById("receita").value
+  };
+
+  fetch(scriptURL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados)
+  })
+  .then(() => {
+    document.getElementById("resposta").innerText = "✅ Dados enviados com sucesso!";
+    document.getElementById("formulario").reset();
+  })
+  .catch(() => {
+    document.getElementById("resposta").innerText = "❌ Erro ao enviar dados!";
+  });
+});
+</script>
 </body>
 </html>
-
