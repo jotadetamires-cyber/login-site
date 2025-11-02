@@ -1,222 +1,272 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Avaliação de Desempenho — Unidades Sanitárias</title>
+<head><script type="text/javascript" src="/___vscode_livepreview_injected_script"></script>
+<meta charset="UTF-8">
+<title>Tendência de Casos — Indicadores de Saúde</title>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- SheetJS para Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <style>
-    body { font-family: Inter, Arial, sans-serif; margin: 20px; background:#f6f8fa; color:#111; }
-    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:8px; }
-    h1 { margin:0; font-size:20px; }
-    .grid { display:grid; grid-template-columns: 1fr 420px; gap:20px; }
-    .card { background:#fff; border-radius:10px; padding:14px; box-shadow:0 6px 18px rgba(12,20,40,0.06); position:relative; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th, td { padding:8px 10px; border-bottom:1px solid #f0eef6; text-align:left; vertical-align:top; }
-    th { background:#0e783b; color:#fff; font-weight:600; font-size:13px; }
-    .small { font-size:12px; color:#555; }
-    .charts { display:flex; flex-direction:column; gap:18px; max-height:78vh; overflow:auto; padding-right:6px; }
-    canvas { width:100% !important; height:240px !important; }
-    .controls { display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap; }
-    .btn { background:#0077cc; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
-    .btn.secondary { background:#e6eef9; color:#034; }
-    select { padding:6px 8px; font-size:13px; border-radius:6px; border:1px solid #ccc; }
-    @media (max-width:980px){ .grid { grid-template-columns:1fr; } .charts { max-height:none; } }
+<!-- jsPDF para PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-    /* ===== Botão de menu DHIS2 ===== */
-    .menu-float { position:absolute; top:12px; right:14px; }
-    .menu-btn {
-      background:#0077cc; color:#fff; border:none; border-radius:8px;
-      width:32px; height:32px; display:flex; align-items:center; justify-content:center;
-      cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.15);
-    }
-    .menu-btn .dots { display:grid; grid-template-columns:repeat(3,4px); grid-gap:3px; }
-    .menu-btn .dots span { width:4px; height:4px; background:#fff; border-radius:50%; display:block; }
-    .menu-popup {
-      display:none; position:absolute; right:0; top:40px; background:#fff;
-      border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
-      overflow:hidden; z-index:100; min-width:210px; animation: fadeIn 0.15s ease-out;
-    }
-    .menu-popup a { display:block; padding:10px 12px; text-decoration:none; color:#222; font-size:13px; }
-    .menu-popup a:hover { background:#02914e; color:#fff; }
-    @keyframes fadeIn { from {opacity:0; transform:translateY(-4px);} to {opacity:1; transform:translateY(0);} }
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f7fb; padding: 20px; }
+  h2 { text-align: center; color: #123; margin-bottom: 20px; }
+  .controls {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px; margin-bottom: 25px;
+  }
+  select, button { padding: 6px 10px; font-size: 14px; }
+  .grafico {
+    width: 90%; max-width: 900px; background: #fff; border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1); margin: 25px auto; padding: 15px;
+  }
+  canvas { width: 100%; height: 320px; }
+  .titulo-indicador { text-align: center; font-weight: bold; margin-bottom: 6px; color: #222; }
+  .legenda-personalizada { text-align: center; font-size: 14px; margin-bottom: 10px; }
+  .legenda-item { display: inline-block; margin: 0 8px; }
+  .legenda-cor {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+    margin-right: 5px; vertical-align: middle;
+  }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>Avaliação de Desempenho — Unidades Sanitárias (Distrito de Metarica)</h1>
-    <div class="small">Comparação de desempenho e número de discrepâncias</div>
-  </div>
-  <div class="small">Gerado: <strong id="ts"></strong></div>
-</header>
+<h2>Tendência de Casos — Seleciona o ano ( o mes de Setembro coresponde a Outubro)</h2>
 
-<div class="grid">
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; position:relative;">
-      <h3 style="margin:0">Tabela de Desempenho e Discrepâncias</h3>
+ </button>
 
-      <!-- Menu -->
-      <div class="menu-float">
-        <button class="menu-btn" id="menuToggle" title="Abrir menu">
-          <div class="dots">
-            <span></span><span></span><span></span>
-            <span></span><span></span><span></span>
-            <span></span><span></span><span></span>
-          </div>
-        </button>
-        <div class="menu-popup" id="menuPopup">
-          <a href="avaliacao_cobertura.html" target="_blank">Avaliação de Cobertura</a>
-          <a href="avaliacao_evolucao.html" target="_blank">Avaliação de Evolução</a>
-          <a href="avaliacao_tendencia.html" target="_blank">Tendência de Casos</a>
-          <a href="#" target="_blank">Avaliação de Desempenho</a>
-        </div>
-      </div>
-    </div>
+<div class="controls">
+  <label>Unidade Sanitária:</label>
+  <select id="areaSelect"><option value="">--Todas--</option></select>
 
-    <table id="perf-table">
-      <thead>
-        <tr><th>Unidade Sanitária</th><th>Indicador</th><th>Meta (%)</th><th>Real (%)</th><th>Desempenho</th><th>Discrepâncias</th></tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
+  <label>Ano:</label>
+  <select id="anoSelect"><option value="">--Todos--</option></select>
 
-  <div class="card">
-    <div class="controls">
-      <label for="filterUS">Filtrar por Unidade Sanitária:</label>
-      <select id="filterUS">
-        <option value="all">Todas</option>
-      </select>
-      <button class="btn" id="showAll">Mostrar todos</button>
-      <button class="btn secondary" id="hideAll">Ocultar</button>
-    </div>
-    <div class="charts" id="charts-container"></div>
-  </div>
+  <label>Mês:</label>
+  <select id="mesSelect">
+    <option value="">--Todos--</option>
+    <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+    <option value="03">Março</option><option value="04">Abril</option>
+    <option value="05">Maio</option><option value="06">Junho</option>
+    <option value="07">Julho</option><option value="08">Agosto</option>
+    <option value="09">Setembro</option><option value="10">Outubro</option>
+    <option value="11">Novembro</option><option value="12">Dezembro</option>
+  </select>
+
+  <label>Tipo de Gráfico:</label>
+  <select id="tipoGrafico">
+    <option value="line">Linha</option>
+    <option value="bar">Barra</option>
+    <option value="radar">Radar</option>
+    <option value="doughnut">Rosca</option>
+  </select>
+
+  <button id="exportExcel">Exportar Excel</button>
+  <button id="exportPDF">Exportar PDF</button>
 </div>
 
+<div id="containerGraficos"></div>
+
 <script>
-document.getElementById('ts').textContent = new Date().toLocaleString('pt-PT');
+const URL_APP = 'https://script.google.com/macros/s/AKfycbzIdQoE9cSvOdLE5t8pJJs4usKlDI7zqrk8I2tD86vrKRafa0ZQt6RAizRw7WD2wXkl/exec';
+let dados = [], indicadores = [], charts = [];
 
-// ==== MENU ====
-const menuBtn=document.getElementById('menuToggle');
-const menuPopup=document.getElementById('menuPopup');
-menuBtn.addEventListener('click',(e)=>{ e.stopPropagation(); menuPopup.style.display=menuPopup.style.display==='block'?'none':'block'; });
-document.addEventListener('click',()=>menuPopup.style.display='none');
-
-// ==== DADOS DE DESEMPENHO ====
-const perfData = [
-  {us:'CS de Metarica', indicador:'CPN', meta:95, real:88},
-  {us:'CS de Metarica', indicador:'PAV', meta:90, real:85},
-  {us:'CS de Mecunica', indicador:'CPN', meta:95, real:75},
-  {us:'CS de Muhemela', indicador:'CPN', meta:95, real:93},
-  {us:'CS de Mepuera', indicador:'CPN', meta:95, real:78},
-  {us:'CS de Nacumua', indicador:'CPN', meta:95, real:89}
+const cores = [
+  "#1976d2", "#388e3c", "#f57c00", "#7b1fa2", "#0288d1",
+  "#c2185b", "#00796b", "#512da8", "#e64a19", "#303f9f"
 ];
 
-// ==== DADOS DE DISCREPÂNCIAS (base do relatório anterior) ====
-const discrepancias = [
-  {area:'CS de Nacumua'},
-  {area:'CS de Metarica'},
-  {area:'CS de Namicunde'},
-  {area:'CS de Mecunica'},
-  {area:'CS de Muhemela'},
-  {area:'CS de Mepuera'},
-  {area:'CS de Nacumua'},
-  {area:'CS de Muhemela'},
-  {area:'CS de Niputa'},
-  {area:'CS de Mepuera'},
-  {area:'CS de Mecunica'},
-  {area:'CS de Muhemela'},
-  {area:'CS de Niputa'},
-  {area:'CS de Metarica'},
-  {area:'CS de Mecunica'},
-  {area:'CS de Nacuma'},
-  {area:'CS de Mepuera'}
-];
+async function carregarDados() {
+  try {
+    const res = await fetch(URL_APP);
+    const json = await res.json();
+    dados = json.dados || [];
+    if (!dados.length) return alert("Nenhum dado encontrado na planilha.");
+    indicadores = Object.keys(dados[0]).filter(k => k !== 'Periodo' && k !== 'Unidade Sanitaria');
+    preencherFiltros();
+    gerarGraficos();
+  } catch (err) {
+    alert("Erro ao carregar dados. Verifique a conexão ou URL.");
+  }
+}
 
-// ==== CONTAR DISCREPÂNCIAS ====
-const discCount={};
-discrepancias.forEach(d=>{
-  const a=d.area.trim();
-  discCount[a]=(discCount[a]||0)+1;
-});
+function preencherFiltros() {
+  const areaSel = document.getElementById("areaSelect");
+  const anoSel = document.getElementById("anoSelect");
 
-// ==== POPULAR TABELA ====
-const tbody=document.getElementById('table-body');
-perfData.forEach(r=>{
-  const diff=r.real - r.meta;
-  const status = diff >= 0 ? '✅ Cumprido' : diff > -10 ? '🟡 Parcial' : '🔴 Abaixo';
-  const disc = discCount[r.us] || 0;
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${r.us}</td><td>${r.indicador}</td><td>${r.meta}</td><td>${r.real}</td><td>${status}</td><td>${disc}</td>`;
-  tbody.appendChild(tr);
-});
+  const unidades = [...new Set(dados.map(d => d['Unidade Sanitaria']))].filter(Boolean).sort();
+  unidades.forEach(u => areaSel.appendChild(new Option(u, u)));
 
-// ==== POPULAR FILTRO ====
-const select=document.getElementById('filterUS');
-const usList=[...new Set(perfData.map(r=>r.us))].sort();
-usList.forEach(u=>{
-  const opt=document.createElement('option');
-  opt.value=u; opt.textContent=u;
-  select.appendChild(opt);
-});
+  const anos = [...new Set(dados.map(d => {
+    const m = d.Periodo.match(/\b(20\d{2})\b/);
+    return m ? m[1] : null;
+  }))].filter(Boolean).sort();
+  anos.forEach(a => anoSel.appendChild(new Option(a, a)));
 
-// ==== GRÁFICOS ====
-const container=document.getElementById('charts-container');
-function renderCharts(filter="all"){
-  container.innerHTML="";
-  const dataFiltered = filter==="all" ? perfData : perfData.filter(r=>r.us===filter);
-  const grouped={};
-  dataFiltered.forEach(r=>{
-    if(!grouped[r.us]) grouped[r.us]={labels:[],meta:[],real:[],discrep:discCount[r.us]||0};
-    grouped[r.us].labels.push(r.indicador);
-    grouped[r.us].meta.push(r.meta);
-    grouped[r.us].real.push(r.real);
-  });
+  areaSel.addEventListener("change", gerarGraficos);
+  anoSel.addEventListener("change", gerarGraficos);
+  document.getElementById("mesSelect").addEventListener("change", gerarGraficos);
+  document.getElementById("tipoGrafico").addEventListener("change", gerarGraficos);
+}
 
-  Object.entries(grouped).forEach(([us,info])=>{
-    const card=document.createElement('div');
-    card.style.background="#fff";
-    card.style.padding="10px";
-    card.style.borderRadius="8px";
-    card.style.boxShadow="0 4px 10px rgba(0,0,0,0.05)";
-    const title=document.createElement('div');
-    title.innerHTML=`<strong>${us}</strong> — Discrepâncias: ${info.discrep}`;
-    card.appendChild(title);
-    const canvas=document.createElement('canvas');
-    card.appendChild(canvas);
-    container.appendChild(card);
+function gerarGraficos() {
+  const area = document.getElementById("areaSelect").value;
+  const anoAtual = document.getElementById("anoSelect").value;
+  const mes = document.getElementById("mesSelect").value;
+  const tipo = document.getElementById("tipoGrafico").value;
+  const container = document.getElementById("containerGraficos");
+  container.innerHTML = "";
+  charts = [];
 
-    new Chart(canvas.getContext('2d'),{
-      type:'bar',
-      data:{
-        labels:info.labels,
-        datasets:[
-          {label:'Meta (%)', data:info.meta, backgroundColor:'rgba(0,123,255,0.4)'},
-          {label:'Real (%)', data:info.real, backgroundColor:'rgba(10,200,100,0.6)'}
+  indicadores.forEach((indicador, idx) => {
+    let registros = area ? dados.filter(d => d['Unidade Sanitaria'] === area) : dados;
+    const corBase = cores[idx % cores.length];
+    const anoAnterior = anoAtual ? String(Number(anoAtual) - 1) : null;
+
+    const filtroPeriodo = (r, ano, mes) => {
+      const p = r.Periodo;
+      const temAno = ano ? p.includes(ano) : true;
+      const temMes = mes ? p.includes(`-${mes}`) || p.includes(`/${mes}`) : true;
+      return temAno && temMes;
+    };
+
+    const dadosAnoAtual = registros.filter(r => filtroPeriodo(r, anoAtual, mes));
+    const dadosAnoAnterior = registros.filter(r => filtroPeriodo(r, anoAnterior, mes));
+
+    const agrupar = lista => {
+      const g = {};
+      lista.forEach(r => {
+        const periodo = normalizarPeriodo(r.Periodo);
+        const valor = parseFloat(r[indicador]) || 0;
+        if (!g[periodo]) g[periodo] = 0;
+        g[periodo] += valor;
+      });
+      return g;
+    };
+
+    const agrupadoAtual = agrupar(dadosAnoAtual);
+    const agrupadoAnterior = agrupar(dadosAnoAnterior);
+
+    const todosMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+    const mesesPresentes = mes
+      ? [mesNome(mes)]
+      : todosMeses.filter(m => 
+          Object.keys(agrupadoAtual).some(p => p.startsWith(m)) ||
+          Object.keys(agrupadoAnterior).some(p => p.startsWith(m))
+        );
+
+    const valoresAtual = mesesPresentes.map(m => {
+      const key = Object.keys(agrupadoAtual).find(k => k.startsWith(m)) || "";
+      return agrupadoAtual[key] || 0;
+    });
+
+    const valoresAnterior = mesesPresentes.map(m => {
+      const key = Object.keys(agrupadoAnterior).find(k => k.startsWith(m)) || "";
+      return agrupadoAnterior[key] || 0;
+    });
+
+    const div = document.createElement("div");
+    div.className = "grafico";
+    div.innerHTML = `
+      <div class="titulo-indicador">${indicador}</div>
+      <div class="legenda-personalizada">
+        <span class="legenda-item"><span class="legenda-cor" style="background-color:${corBase}"></span>${anoAtual || "Ano atual"}</span>
+        <span class="legenda-item"><span class="legenda-cor" style="background-color:${corBase}80"></span>${anoAnterior || "Ano anterior"}</span>
+      </div>
+      <canvas></canvas>
+    `;
+    container.appendChild(div);
+
+    const ctx = div.querySelector("canvas").getContext("2d");
+
+    const chart = new Chart(ctx, {
+      type: tipo,
+      data: {
+        labels: mesesPresentes,
+        datasets: [
+          {
+            label: anoAnterior,
+            data: valoresAnterior,
+            borderColor: `${corBase}80`,
+            backgroundColor: tipo === "line" ? `${corBase}30` : `${corBase}80`,
+            fill: tipo === "line" || tipo === "radar",
+            tension: 0.3,
+            pointRadius: 4
+          },
+          {
+            label: anoAtual,
+            data: valoresAtual,
+            borderColor: corBase,
+            backgroundColor: tipo === "line" ? `${corBase}40` : corBase,
+            fill: tipo === "line" || tipo === "radar",
+            tension: 0.3,
+            pointRadius: 4
+          }
         ]
       },
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{title:{display:true,text:`Desempenho e Discrepâncias (${us})`}},
-        scales:{y:{beginAtZero:true,max:100}}
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: tipo !== "radar" && tipo !== "doughnut" ? {
+          x: { title: { display: true, text: "Mês" } },
+          y: { title: { display: true, text: "Casos" }, beginAtZero: true }
+        } : {}
       }
     });
+    charts.push(chart);
   });
-  if(container.innerHTML==="") container.innerHTML="<div class='small'>Nenhum gráfico disponível para esta unidade.</div>";
 }
-renderCharts();
 
-// ==== EVENTOS ====
-select.addEventListener('change',()=>renderCharts(select.value));
-document.getElementById('showAll').onclick=()=>Array.from(container.children).forEach(c=>c.style.display='block');
-document.getElementById('hideAll').onclick=()=>Array.from(container.children).forEach(c=>c.style.display='none');
+function mesNome(num) {
+  const meses = { "01": "Janeiro","02":"Fevereiro","03":"Março","04":"Abril","05":"Maio","06":"Junho",
+                  "07":"Julho","08":"Agosto","09":"Setembro","10":"Outubro","11":"Novembro","12":"Dezembro" };
+  return meses[num] || "";
+}
+
+function normalizarPeriodo(p) {
+  const m = p.match(/(20\d{2})[-/](\d{1,2})/);
+  if (m) return `${mesNome(m[2].padStart(2,"0"))} ${m[1]}`;
+  return p;
+}
+
+function exportExcel() {
+  if (!dados.length) return alert("Sem dados para exportar.");
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dados");
+  XLSX.writeFile(wb, "Tendencia_Indicadores.xlsx");
+}
+
+function exportPDF() {
+  if (!charts.length) return alert("Gere os gráficos primeiro.");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("landscape");
+  doc.setFontSize(14);
+  doc.text("Tendência de Casos — Indicadores de Saúde", 20, 20);
+  let y = 40;
+  charts.forEach((chart, i) => {
+    const img = chart.toBase64Image();
+    doc.addImage(img, "PNG", 20, y, 250, 100);
+    doc.text(indicadores[i], 20, y - 3);
+    y += 110;
+    if (y > 180 && i < charts.length - 1) { doc.addPage(); y = 30; }
+  });
+  doc.save("Tendencia_Indicadores.pdf");
+}
+
+document.getElementById("exportExcel").addEventListener("click", exportExcel);
+document.getElementById("exportPDF").addEventListener("click", exportPDF);
+
+carregarDados();
 </script>
-
 </body>
 </html>
