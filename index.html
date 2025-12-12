@@ -1,271 +1,259 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Relatório — Avaliação dda informacao</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel DHIS2 - SIDIS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; background: #1363b3; margin: 0; padding: 0; }
 
-  <style>
-    body { font-family: Inter, Arial, sans-serif; margin: 20px; background:#f6f8fa; color:#111; }
-    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:8px; }
-    h1 { margin:0; font-size:20px; }
-    .grid { display:grid; grid-template-columns: 1fr 420px; gap:20px; }
-    .card { background:#fff; border-radius:10px; padding:14px; box-shadow:0 6px 18px rgba(12,20,40,0.06); position:relative; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th, td { padding:8px 10px; border-bottom:1px solid #f0eef6; text-align:left; vertical-align:top; }
-    th { background:#159e1c; font-weight:600; font-size:13px; }
-    .small { font-size:12px; color:#555; }
-    .charts { display:flex; flex-direction:column; gap:18px; max-height:78vh; overflow:auto; padding-right:6px; }
-    canvas { width:100% !important; height:240px !important; }
-    .controls { display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap; }
-    .btn { background:#0077cc; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
-    .btn.secondary { background:#e6eef9; color:#034; }
-    select { padding:6px 8px; font-size:13px; border-radius:6px; border:1px solid #ccc; }
-    @media (max-width:980px){ .grid { grid-template-columns:1fr; } .charts { max-height:none; } }
+  /* Barra superior expansível e centralizada */
+  #topBar {
+    position: fixed;
+    top: 50px;
+    left: 20px;
+    right: 125px;
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    z-index: 1002;
+    padding: 0 12px;
+    overflow: hidden;
+  }
+  /* Imagem ocupando quase toda a página */
+  #imagemBar {
+    position: fixed;
+    top: 100px; /* logo abaixo da barra */
+    left: 20px;
+    right: 125px;
+    bottom: 20px; /* pequena margem inferior */
+    border-radius: 10px;
+    object-fit: cover;
+    width: calc(100% - 145px);
+    height: calc(100vh - 120px); /* ocupa quase toda a altura da tela */
+    z-index: 900;
+    box-shadow: 0 3px 20px rgba(17, 29, 185, 0.3);
+  }
 
-    /* ===== Botão de menu DHIS2 (9 pontinhos) ===== */
-    .menu-float {
-      position:absolute;
-      top:12px;
-      right:14px;
-    }
-    .menu-btn {
-      background:#0077cc;
-      color:#fff;
-      border:none;
-      border-radius:8px;
-      width:32px;
-      height:32px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      box-shadow:0 3px 8px rgba(0,0,0,0.15);
-    }
-    .menu-btn .dots {
-      display:grid;
-      grid-template-columns:repeat(3,4px);
-      grid-gap:3px;
-    }
-    .menu-btn .dots span {
-      width:4px;
-      height:4px;
-      background:#fff;
-      border-radius:50%;
-      display:block;
-    }
 
-    .menu-popup {
-      display:none;
-      position:absolute;
-      right:0;
-      top:40px;
-      background:#fff;
-      border-radius:8px;
-      box-shadow:0 4px 14px rgba(0,0,0,0.1);
-      overflow:hidden;
-      z-index:100;
-      min-width:210px;
-      animation: fadeIn 0.15s ease-out;
-    }
-    .menu-popup a {
-      display:block;
-      padding:10px 12px;
-      text-decoration:none;
-      color:#222;
-      font-size:13px;
-    }
-    .menu-popup a:hover {
-      background:#02914e;
-    }
-    @keyframes fadeIn {
-      from {opacity:0; transform:translateY(-4px);}
-      to {opacity:1; transform:translateY(0);}
-    }
-  </style>
+  #topText {
+    font-family: Impact, Charcoal, sans-serif;
+    font-size: 20px;
+    color: #1976d2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Botões */
+  .menu-btn {
+    position: fixed; top: 50px; right: 20px;
+    background-color: #1976d2; border: none; width: 44px; height: 44px; border-radius: 6px;
+    cursor: pointer; display: grid; grid-template-columns: repeat(3, 8px); grid-template-rows: repeat(3, 8px);
+    gap: 4px; justify-content: center; align-content: center; z-index: 1001;
+  }
+  .menu-btn div { width: 8px; height: 8px; background-color: #fff; border-radius: 2px; }
+
+  .msg-btn {
+    position: fixed; top: 50px; right: 75px;
+    background-color: #388e3c; border: none; width: 44px; height: 44px; border-radius: 6px;
+    color: white; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1001;
+  }
+  .msg-btn:hover { background-color: #2e7d32; }
+
+  /* Caixa de mensagem reorganizada e adaptativa */
+  .msg-box {
+    display: none; position: fixed; top: 105px; right: 20px;
+    background-color: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    padding: 15px; width: 600px; z-index: 1000;
+  }
+  .msg-box-content {
+    display: flex; gap: 15px; height: 320px;
+  }
+  #mensagensAntigas {
+    flex: 1; overflow-y: auto; border-right:1px solid #eee; padding-right:10px;
+  }
+  #mensagensAntigas div { margin-bottom:10px; padding:6px; border-bottom:1px solid #eee; }
+  .msg-inputs {
+    flex: 1; display:flex; flex-direction:column; gap:8px; height:100%;
+  }
+  .msg-inputs input, .msg-inputs textarea { width:100%; border-radius:6px; border:1px solid #ccc; padding:8px; font-family: Arial, sans-serif; }
+  .msg-inputs textarea { flex:1; resize:none; }
+  .msg-inputs button { margin-top:8px; background-color:#388e3c; border:none; color:white; padding:8px 14px; border-radius:6px; cursor:pointer; }
+  .msg-inputs button:hover { background-color:#2e7d32; }
+
+  /* Menu DHIS2 */
+  .menu-panel { display: none; position: fixed; top: 105px; right: 20px; background-color: #fff; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 20px; z-index: 1000; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
+  .menu-grid { display: grid; grid-template-columns: repeat(2, 140px); gap: 15px; }
+  .menu-item { text-align:center; background-color:#e3f2fd; border-radius:10px; padding:15px; transition:all 0.2s ease; cursor:pointer; }
+  .menu-item:hover { background-color:#bbdefb; transform:translateY(-3px); }
+  .menu-item span { display:block; margin-top:8px; font-weight:bold; color:#0d47a1; }
+  .menu-item i { font-size:28px; color:#1976d2; }
+
+  /* Slides */
+  .slideshow-container { max-width:100%; position:relative; margin:auto; margin-top:120px; }
+  .slide { display:none; text-align:center; padding:20px; animation: fadeSlide 1s ease-in-out; }
+  @keyframes fadeSlide { from {opacity:0;} to {opacity:1;} }
+  canvas { max-width:700px; margin-top:20px; background-color:#000; }
+  .full-width { max-width:95vw !important; width:95vw !important; }
+
+  .kpi-box { display:inline-block; margin:20px; padding:20px 30px; border-radius:10px; background:#e3f2fd; color:#0d47a1; font-size:22px; font-weight:bold; }
+  .sidis-info { text-align:left; background:#e3f2fd; color:#0d47a1; border-left:6px solid #1976d2; padding:20px; margin-top:40px; border-radius:10px; max-width:500px; font-size:15px; line-height:1.5; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  .sidis-wrapper { display:flex; justify-content:center; align-items:flex-start; gap:40px; flex-wrap:wrap; }
+  .sidis-info h3 { margin-top:0; color:#0d47a1; }
+</style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>Relatório — Avaliação e Triangulação de Dados (Distrito de Metarica)</h1>
-    <div class="small">Gráficos filtráveis por Unidade Sanitária</div>
-  </div>
-  <div class="small">Gerado: <strong id="ts"></strong></div>
-</header>
+<!-- Barra superior expansível e centralizada -->
+<div id="topBar">
+  <span id="topText">DASHBOARD DE PRINCIPAIS INDICADORES - METARICA</span>
+</div>
+<!-- Imagem abaixo da barra, ocupando quase toda a tela -->
+<img id="imagemBar" src="https://i.postimg.cc/sxmz9N15/Screenshot-2025-11-06-165843.png" alt="Painel DHIS2 - Metarica">
 
-<div class="grid">
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; position:relative;">
-      <h3 style="margin:0">Tabela de Observações</h3>
-      <div class="menu-float">
-        <button class="menu-btn" id="menuToggle" title="Abrir menu">
-          <div class="dots">
-            <span></span><span></span><span></span>
-            <span></span><span></span><span></span>
-            <span></span><span></span><span></span>
-          </div>
-        </button>
-        <div class="menu-popup" id="menuPopup">
-          <a href="https://drive.google.com/file/d/1tTL0l-D1f0Ca7yKIceK-DoYK5IwgZ_iK/view" target="_blank">Avaliação de Cobertura</a>
-          <a href="http://127.0.0.1:3002/index.html?serverWindowId=ddf4b0b3-41c9-4864-8995-d63357164ed9" target="_blank">Avaliação de Evolução</a>
-          <a href="file:///C:/Users/hp/Downloads/index%20(17).html" target="_blank">Tendência de Casos</a>
-          <a href="#" target="_blank">Avaliação de Desempenho</a>
-        </div>
-      </div>
+<button class="msg-btn" id="msgBtn">✉️</button>
+<div class="msg-box" id="msgBox">
+  <div class="msg-box-content">
+    <!-- Coluna esquerda: mensagens antigas -->
+    <div id="mensagensAntigas">
+      <i>Nenhuma mensagem ainda.</i>
     </div>
 
-    <div class="small" style="margin-bottom:8px">Área de Saúde — Programa — Assunto</div>
-    <table id="obs-table">
-      <thead>
-        <tr><th>Área de Saúde</th><th>Programa</th><th>Assunto</th></tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <div class="controls">
-      <label for="filterArea">Filtrar por Área de Saúde:</label>
-      <select id="filterArea">
-        <option value="all">Todas</option>
-      </select>
-      <button class="btn" id="showAll">Mostrar todos</button>
-      <button class="btn secondary" id="hideAll">Ocultar</button>
+    <!-- Coluna direita: campos de envio -->
+    <div class="msg-inputs">
+      <input type="text" id="nomeUsuario" placeholder="Seu nome">
+      <textarea id="mensagem" placeholder="Escreva seu comentário..."></textarea>
+      <button id="enviarMsg">Enviar</button>
     </div>
-    <div class="charts" id="charts-container"></div>
   </div>
 </div>
 
+<button class="menu-btn" id="menuBtn">
+  <div></div><div></div><div></div>
+  <div></div><div></div><div></div>
+  <div></div><div></div><div></div>
+</button>
+
+<div class="menu-panel" id="menuPanel">
+  <div class="menu-grid">
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/insercao-de-dados', '_blank')"><i>📋</i><span>Inserção</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/visualizacao-de-dados', '_blank')"><i>📊</i><span>Visualização</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/coberturas', '_blank')"><i>🩺</i><span>Cobertura</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/evolucao', '_blank')"><i>📈</i><span>Evolução</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/tendencia?authuser=0', '_blank')"><i>📉</i><span>Tendência</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/desempenho', '_blank')"><i>🏆</i><span>Desempenho</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/percentagem', '_blank')"><i>📑</i><span>Percentagem</span></div>
+    <div class="menu-item" onclick="window.open('https://sites.google.com/view/sidis-j/evolucao-geral?authuser=0', '_blank')"><i>SISMA</i><span>Dados Geral</span></div>
+  </div>
+</div>
+
+
 <script>
-  document.getElementById('ts').textContent = new Date().toLocaleString('pt-PT');
+const url="https://script.google.com/macros/s/AKfycbxFKOVfeFEzGAyY8NSfmzJJJro7w5r0bBZ3KF2Taa49Dz7jV9k3OWUxqb24xpprTh0/exec";
+const urlMsg="https://script.google.com/macros/s/AKfycbwOyM-Cci1M0epYH9kZVEMDAJ8feeqBpGBrtLEr1yrEBqQOhDelbnMTGjKboGWTm0MS/exec";
 
-  // ==== MENU FLUTUANTE (tipo DHIS2) ====
-  const menuBtn = document.getElementById('menuToggle');
-  const menuPopup = document.getElementById('menuPopup');
-  menuBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    menuPopup.style.display = menuPopup.style.display === 'block' ? 'none' : 'block';
+const menuBtn=document.getElementById('menuBtn');
+const menuPanel=document.getElementById('menuPanel');
+menuBtn.addEventListener('click',()=>{menuPanel.style.display=menuPanel.style.display==='block'?'none':'block';});
+document.addEventListener('click',e=>{if(!menuPanel.contains(e.target)&&!menuBtn.contains(e.target))menuPanel.style.display='none';});
+
+const msgBtn=document.getElementById('msgBtn');
+const msgBox=document.getElementById('msgBox');
+msgBtn.addEventListener('click',()=>{msgBox.style.display=msgBox.style.display==='block'?'none':'block';if(msgBox.style.display==='block')carregarMensagens();});
+document.addEventListener('click',e=>{if(!msgBox.contains(e.target)&&!msgBtn.contains(e.target))msgBox.style.display='none';});
+
+async function carregarMensagens(){try{
+  const res=await fetch(urlMsg+"?action=get");
+  const dados=await res.json();
+  const c=document.getElementById("mensagensAntigas"); c.innerHTML="";
+  if(dados.length===0){c.innerHTML="<i>Nenhuma mensagem ainda.</i>"; return;}
+  dados.reverse().forEach(d=>{
+    const el=document.createElement("div");
+    el.innerHTML=`<b>${d.nome}</b> <span style="font-size:12px;color:#555">(${d.data})</span><br>${d.mensagem}`;
+    c.appendChild(el);
   });
-  document.addEventListener('click', ()=>menuPopup.style.display='none');
+  c.scrollTop=c.scrollHeight;
+}catch(e){console.error(e);}}
 
-  // ==== Dados ====
-  const rawRows = [
-    {area:'CS de Nacumua', programa:'Doenças Tropical Negligenciada', assunto:'Não Elaboração do Resumo de Mês de Outubro'},
-    {area:'CS de Metarica', programa:'Nutrição', assunto:'Não Elaboração do Resumo de Mês de Outubro (CCD)'},
-    {area:'(várias)', programa:'Enfermagem', assunto:'Não Elaboração do Resumo de Mês de Outubro (C.Externa)'},
-    {area:'CS de Namicunde', programa:'ATS', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J (70/106)'},
-    {area:'CS de Mecunica', programa:'Ficha de HIV', assunto:'O ponto focal deve coordenar com director do centro para armonizar os activos'},
-    {area:'CS de Muhemela', programa:'Ficha de HIV', assunto:'O ponto focal deve coordenar com director do centro para armonizar os activos'},
-    {area:'CS de Mepuera', programa:'ITS', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J (20/5)'},
-    {area:'CS de Nacumua', programa:'PAV', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J (45/15) (ccv)'},
-    {area:'CS de Muhemela', programa:'PAV', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J CCV assim como BCG'},
-    {area:'Algumas US', programa:'PAV', assunto:'Devem inserir o número de Brigadas Moveis planificadas nos resumos mensais de VAT'},
-    {area:'CS de Niputa', programa:'CPN', assunto:'Discrepância de dados no período de coorte (maio-49, Outubro-62)'},
-    {area:'CS de Mepuera', programa:'CPN', assunto:'Discrepância de dados no período de coorte (maio-36, Outubro-32)'},
-    {area:'CS de Mecunica', programa:'CPN', assunto:'O somatório entre positivos e negativos para sífilis é inferior ao total das CPN coorte'},
-    {area:'CS de Muhemela', programa:'CPN', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J toda informação de CPN'},
-    {area:'CS de Muhemela', programa:'Maternidade', assunto:'Discrepância de dados entre o resumo e o reportado no SIDIS-J (32/22)'},
-    {area:'CS de Niputa', programa:'Maternidade', assunto:'Fazer a revisão do resumo: dos 20 nados vivos não tiveram pele a pele com a mãe e não foram amamentadas'},
-    {area:'Cs de Namicunde', programa:'Maternidade', assunto:'Dos 26 partos atendidos nenhum teve acompanhante durante o trabalho de parto'},
-    {area:'Cs de Nacumua', programa:'Pós-parto', assunto:'Discrepância de dados no período de coorte (Agosto-35, Outubro-59)'},
-    {area:'CS de Niputa', programa:'Pós-parto', assunto:'Discrepância de dados no período de coorte (Agosto-20, Outubro-17)'},
-    {area:'CS de Metarica', programa:'Pós-parto', assunto:'As duas crianças nascidas fora da maternidade não foram registadas na consulta pós-parto (86 + 2 = 88)'},
-    {area:'CS de Mecunica', programa:'CCR', assunto:'Notificou uma criança exposta a HIV; nenhuma mãe HIV positiva foi identificada na maternidade'},
-    {area:'CS de Mepuera', programa:'PF', assunto:'Deve rever, as 96 mulheres que entraram com estado desconhecido para HIV não foram testadas (linha 29)'},
-    {area:'CS de Muhemela', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (20/32)'},
-    {area:'CS de Metarica', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (114/87)'},
-    {area:'Cs de Namicunde', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (24/26)'},
-    {area:'CS de Niputa', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (26/20)'},
-    {area:'CS de Mecunica', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (51/37)'},
-    {area:'CS de Nacuma', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos (45/40)'},
-    {area:'CS de Mepuera', programa:'BCG/Nados Vivos', assunto:'Diferenca entre criancas vacinadas com BCG e nados vivos28/32'}
-  ];
+document.getElementById('enviarMsg').addEventListener('click',async()=>{
+  const n=document.getElementById('nomeUsuario').value.trim();
+  const m=document.getElementById('mensagem').value.trim();
+  if(!n) return alert("Informe seu nome.");
+  if(!m) return alert("Escreva uma mensagem.");
+  try{
+    await fetch(urlMsg+"?nome="+encodeURIComponent(n)+"&mensagem="+encodeURIComponent(m));
+    alert("Mensagem enviada!");
+    document.getElementById('mensagem').value="";
+    document.getElementById('nomeUsuario').value="";
+    carregarMensagens();
+  }catch(e){alert("Erro ao enviar.");}
+});
 
-  // === Tabela ===
-  const tbody=document.getElementById('table-body');
-  rawRows.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.area}</td><td>${r.programa}</td><td>${r.assunto}</td>`;
-    tbody.appendChild(tr);
-  });
+let slideIndex=0;const slides=document.getElementsByClassName("slide");
+function showSlides(){for(let i=0;i<slides.length;i++)slides[i].style.display="none";slideIndex++;if(slideIndex>slides.length)slideIndex=1;slides[slideIndex-1].style.display="block";setTimeout(showSlides,7000);}
+showSlides();
 
-  // === Extração de dados ===
-  function extractPairValues(text){
-    const m=text.match(/(\d+)\s*\/\s*(\d+)/);
-    if(m) return {a:+m[1],b:+m[2]};
-    return null;
-  }
-  function extractMonthPairs(text){
-    const re=/([A-Za-zçãõÉéíÓóúÂâÊêÛû]+)[\-\s]*(\d+)/g;
-    const mesesPT=['janeiro','fevereiro','março','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-    let list=[],mm;
-    while((mm=re.exec(text))!==null){
-      if(mesesPT.includes(mm[1].toLowerCase())) list.push({month:mm[1],value:+mm[2]});
-    }
-    return list.length>=2?list:null;
-  }
+async function carregarDados(){
+  const r=await fetch(url);
+  const dados=await r.json();
+  if(!dados.length)return;
+  const ult=dados[dados.length-1];
+  document.getElementById("kpis").innerHTML=`<div class="kpi-box">Consultas Externas: ${ult["C.Externas (US)"]||0}</div><div class="kpi-box">Activos TARV: ${ult["Activos TARV"]||0}</div><div class="kpi-box">Partos Institucionais: ${ult["Partos Institucionais"]||0}</div>`;
+  gerarGraficos(dados);
+}
 
-  const chartsData=[];
-  rawRows.forEach(r=>{
-    const text=r.assunto;
-    const p=extractPairValues(text);
-    if(p){
-      chartsData.push({area:r.area,labels:['Resumo','SIDIS-J'],values:[p.a,p.b],title:`${r.programa} — ${r.area}`});
-      return;
-    }
-    const m=extractMonthPairs(text);
-    if(m){
-      chartsData.push({area:r.area,labels:m.map(x=>x.month),values:m.map(x=>x.value),title:`${r.programa} — ${r.area}`});
-      return;
+function gerarGraficos(d){
+  const meses=d.map(x=>x.Periodo);
+  const consultas=d.map(x=>+x["C.Externas (US)"]||0);
+  const malaria=d.map(x=>+x["Casos de Malaria US"]||0);
+
+  new Chart(document.getElementById("grafico1"),{
+    type:'bar',
+    data:{labels:meses,datasets:[{label:'Consultas Externas',data:consultas,backgroundColor:'#1976d2'}]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#555'},ticks:{color:'#fff'}},y:{beginAtZero:true,grid:{color:'#555'},ticks:{color:'#fff'}}},
+      layout:{padding:10},
+      backgroundColor:'#000'
     }
   });
 
-  // === Popular filtro ===
-  const select=document.getElementById('filterArea');
-  const areas=[...new Set(rawRows.map(r=>r.area))].sort();
-  areas.forEach(a=>{
-    const opt=document.createElement('option');
-    opt.value=a; opt.textContent=a;
-    select.appendChild(opt);
+  new Chart(document.getElementById("grafico2"),{
+    type:'line',
+    data:{labels:meses,datasets:[{label:'Casos de Malária',data:malaria,borderColor:'#0d47a1',tension:0.4,fill:false}]},
+    options:{
+      responsive:true,
+      scales:{x:{grid:{color:'#555'},ticks:{color:'#fff'}},y:{grid:{color:'#555'},ticks:{color:'#fff'}}},
+      plugins:{legend:{labels:{color:'#fff'}}},
+      backgroundColor:'#000'
+    }
   });
 
-  // === Gráficos ===
-  const container=document.getElementById('charts-container');
-  function renderCharts(filter="all"){
-    container.innerHTML="";
-    chartsData.forEach(cd=>{
-      if(filter!=="all" && cd.area!==filter) return;
-      const card=document.createElement('div');
-      card.style.background="#fff";
-      card.style.padding="10px";
-      card.style.borderRadius="8px";
-      card.style.boxShadow="0 4px 10px rgba(0,0,0,0.05)";
-      const title=document.createElement('div');
-      title.innerHTML=`<strong>${cd.title}</strong>`;
-      card.appendChild(title);
-      const canvas=document.createElement('canvas');
-      card.appendChild(canvas);
-      container.appendChild(card);
+  const porUS={};
+  d.forEach(x=>{const u=x["Unidade Sanitaria"];porUS[u]=(porUS[u]||0)+(+x["C.Externas (US)"]||0);});
 
-      new Chart(canvas.getContext('2d'),{
-        type:'bar',
-        data:{labels:cd.labels,datasets:[{label:'Valores',data:cd.values,borderWidth:1}]},
-        options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-      });
-    });
-    if(container.innerHTML==="") container.innerHTML="<div class='small'>Nenhum gráfico disponível para esta área.</div>";
-  }
-  renderCharts();
+  new Chart(document.getElementById("grafico3"),{
+    type:'bar',
+    data:{labels:Object.keys(porUS),datasets:[{label:'Consultas Externas por US',data:Object.values(porUS),backgroundColor:'#42a5f5'}]},
+    options:{
+      responsive:true,
+      scales:{x:{grid:{color:'#555'},ticks:{color:'#fff'}},y:{beginAtZero:true,grid:{color:'#555'},ticks:{color:'#fff'}}},
+      plugins:{legend:{labels:{color:'#fff'}}},
+      backgroundColor:'#000'
+    }
+  });
+}
 
-  // === Eventos ===
-  select.addEventListener('change',()=>renderCharts(select.value));
-  document.getElementById('showAll').onclick=()=>Array.from(container.children).forEach(c=>c.style.display='block');
-  document.getElementById('hideAll').onclick=()=>Array.from(container.children).forEach(c=>c.style.display='none');
+carregarDados();
 </script>
-
 </body>
-</html>
+</html> 
